@@ -435,6 +435,12 @@
     body{background:#fff}
     .weather-cast{display:none !important}
   }
+
+  /* the embedded sundial (screen 6) */
+  .sundial-embed{margin:14px 0 4px}
+  #sundialFrame{width:100%; height:700px; border:0; border-radius:var(--radius);
+    background:var(--card); box-shadow:var(--shadow); display:block}
+  @media(max-width:600px){#sundialFrame{height:780px}}
 </style>
 </head>
 <body>
@@ -688,30 +694,19 @@
       <div class="coach-note"><div class="inner"><span class="tag">🌱 For the coach</span><p>The bucket isn't the problem — <em>not tipping it</em> is. A full bucket is normal; the question is where it pours. If they can't name a pour, that's the work: rest, movement, talking, making something, a good night's sleep. Rumination is the bucket that overflows because it's never tipped.</p></div></div>
     </section>
     <section class="screen" data-screen="6" aria-label="Your season now">
-      <p class="eyebrow">the sustained climate</p>
-      <h2>Your season right now</h2>
-      <p class="lede">The alarm was the <em>weather</em> — a passing moment. The <strong>season</strong> is the longer tone: the climate you've been living in lately. Name how you feel and your garden will show you its season — including <em>fallow</em>, when the kindest thing is to rest and wait.</p>
+      <p class="eyebrow">the feeling you're in</p>
+      <h2>Today's weather</h2>
+      <p class="lede">Feelings are <em>weather</em>, not climate — they roll in, move through, and pass. Read the sundial for the feeling you're in right now, and the garden takes on its weather. Naming it <em>is</em> the practice.</p>
 
-      <div class="season-stage" id="seasonStage" role="img" aria-label="Your garden's season">
-        <img class="season-img" id="seasonImg" alt="">
-        <div class="season-ph" id="seasonPh"><span class="emoji">🍃</span><span class="nm">Name a feeling, and your season appears</span></div>
-      </div>
-
-      <p class="season-say" id="seasonSay" aria-live="polite"></p>
-
-      <p class="muted" style="margin-top:10px; font-weight:700">How have you been feeling? Tap what fits — even one.</p>
-      <div class="feel-wheel" id="feelWheel"></div>
-
-      <div class="season-pick" id="seasonPick" hidden>
-        <span class="lbl">Does that feel right? You can choose a different season.</span>
-        <div class="season-chips" id="seasonChips"></div>
+      <div class="sundial-embed">
+        <iframe id="sundialFrame" src="sundial.html?embed=1" title="The sundial — read today's weather" loading="lazy"></iframe>
       </div>
 
       <div class="row">
         <button class="btn ghost" data-go="5">← Back</button>
         <button class="btn" data-go="7">Next: your tending plan →</button>
       </div>
-      <div class="coach-note"><div class="inner"><span class="tag">🌱 For the coach</span><p>The wheel does real work — naming feelings is hard (emotional granularity is often low when we're ND or overwhelmed). Let the feeling <em>suggest</em> the season, never diagnose it: <em>"Does that feel right? You can choose a different one."</em> And hold <strong>fallow</strong> gently — it's resting, not failing. Nothing in this garden ever dies.</p></div></div>
+      <div class="coach-note"><div class="inner"><span class="tag">🌱 For the coach</span><p>The sundial does real work — naming feelings is hard (emotional granularity is often low when we're ND or overwhelmed), and labelling today's weather on a visual wheel is the front-line practice. Hold the spine: most of what you feel is <em>weather</em> — it passes. The two that aren't are <strong>seeking</strong> (the drive underneath) and <strong>care</strong> (connection) — they're climate, the conditions you tend, not storms to wait out.</p></div></div>
     </section>
     <section class="screen" data-screen="7" aria-label="Your tending plan">
       <p class="eyebrow">one small act of care</p>
@@ -752,8 +747,8 @@
           <h3>🪣 Your bucket</h3>
           <div class="map-body" id="mapBucket"></div>
         </div>
-        <div class="map-zone" data-zone="season">
-          <h3>🍃 Your season</h3>
+        <div class="map-zone" data-zone="weather">
+          <h3>🌦️ Today's weather</h3>
           <div class="map-body" id="mapSeason"></div>
         </div>
         <div class="map-zone map-tend" data-zone="tending">
@@ -1380,7 +1375,7 @@
       '<div style="flex-basis:100%"><b>What fills it</b></div>'+fills+
       '<div style="flex-basis:100%;margin-top:8px"><b>How you tip it out</b></div>'+pours+
       '<div class="lvl-track" style="margin-top:8px"><div class="lvl-fill" style="width:'+bucketLevel()+'%"></div></div>');
-    setZone('mapSeason', garden.season? '<span class="tag">'+esc(garden.season)+'</span>' : '<span class="none">— not chosen yet (screen coming) —</span>');
+    setZone('mapSeason', garden.weather? '<span class="tag">'+esc(garden.weather.label||garden.weather.key||'')+'</span>' : '<span class="none">— not read yet —</span>');
     setZone('mapTending', garden.tending? '<span class="tag">'+esc(garden.tending.ico+' '+garden.tending.nm)+'</span> <span class="none" style="font-style:normal">'+esc(garden.tending.ds)+'</span>' : '<span class="none">— not chosen yet —</span>');
   }
   var printBtn=document.getElementById('printBtn');
@@ -1619,7 +1614,10 @@
   function esc(s){ return String(s==null?'':s).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];}); }
 
   /* the contract: listen on document for the sundial's pick */
-  document.addEventListener('sundial:select', function(e){ cast(e.detail); });
+  document.addEventListener('sundial:select', function(e){
+    cast(e.detail);
+    try{ garden.weather = e.detail; save(); }catch(err){}
+  });
   /* test / standalone hook (no sundial.html needed to verify): window.__sundialCast({...}) */
   window.__sundialCast = cast;
 
@@ -1628,6 +1626,21 @@
     var saved=localStorage.getItem('garden.cast');
     if(saved){ var d=JSON.parse(saved); if(d && (d.mode==='climate' || d.kind)) setTimeout(function(){ cast(d); }, 400); }
   }catch(e){}
+})();
+</script>
+
+<script>
+/* bridge: the embedded sundial (screen 6 iframe) relays each pick via
+   postMessage; re-dispatch it on THIS document so the cast listener above
+   fires (the contract event must cross into garden.html's own document). */
+(function(){
+  var frame = document.getElementById('sundialFrame');
+  window.addEventListener('message', function(e){
+    var d = e && e.data;
+    if(!d || d.source!=='sundial' || !d.detail) return;
+    if(frame && e.source && e.source!==frame.contentWindow) return;
+    document.dispatchEvent(new CustomEvent('sundial:select', {detail:d.detail}));
+  });
 })();
 </script>
 </body>
