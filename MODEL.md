@@ -48,7 +48,7 @@ Each emotion is a **range from mild → intense**, not one icon. The granular na
 | **Fear** | **fog** | thin mist (unease) → thick fog (panic) — *the alarm gone haywire: shapes in the mist that may not be there, can't see what's real* |
 | **Sadness** | rain | drizzle (melancholy) → downpour (grief) |
 | **Enjoyment** | sun | sunny intervals (contentment) → blazing sun (happy) → rainbow (ecstasy) |
-| **Disgust** | a sour, stagnant haze / smog | faint off-smell (distaste) → thick choking smog (revulsion); lifts when you move from the source |
+| **Disgust** | a thick, yellow, humid haze — heavy with odour | the air gone *foul*: sickly-yellow, clammy/humid, **reeking** (disgust = the smell/taste system — the one weather you meet through your nose). Oppressive; you want to hold your breath and get out. Gradient: faint off-smell (distaste) → choking yellow smog (revulsion). **Distinct from fear's fog:** fear = grey/cold/can't-see; disgust = yellow/humid/reeks. |
 | **Surprise** | a sudden break in the sky | the **fork**, not a destination: brief + neutral, then breaks by appraisal — **good → sun peeking through the clouds** (toward delight), **bad → a sudden hail** (sharp, out of nowhere, stings, then gone). No pair; doesn't fit the mild→intense radius (*brief → fork*). The pure interoceptive jolt before valence decides the next weather. |
 
 ### Intensity = the radius
