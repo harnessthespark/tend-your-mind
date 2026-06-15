@@ -49,7 +49,7 @@ Each emotion is a **range from mild → intense**, not one icon. The granular na
 | **Sadness** | rain | drizzle (melancholy) → downpour (grief) |
 | **Enjoyment** | sun | sunny intervals (contentment) → blazing sun (happy) → rainbow (ecstasy) |
 | **Disgust** | a sour, stagnant haze / smog | faint off-smell (distaste) → thick choking smog (revulsion); lifts when you move from the source |
-| **Surprise** | a sudden break in the sky (flash / gust) | the **fork**, not a destination: brief + neutral, then breaks by appraisal — **good → sun/rainbow**, **bad → storm or fog/alarm**. No pair; doesn't fit the mild→intense radius (it's *brief → fork*). The pure interoceptive jolt before valence decides the next weather. |
+| **Surprise** | a sudden break in the sky | the **fork**, not a destination: brief + neutral, then breaks by appraisal — **good → sun peeking through the clouds** (toward delight), **bad → a sudden hail** (sharp, out of nowhere, stings, then gone). No pair; doesn't fit the mild→intense radius (*brief → fork*). The pure interoceptive jolt before valence decides the next weather. |
 
 ### Intensity = the radius
 Show intensity **spatially**: near the **hub = mild**, out at the **rim = intense**. Tap the slice for *which* weather; reach out for *how much*. (This is the brief's "inner cores / outer granular" idea — now with a reason: the radius **is** the intensity.)
