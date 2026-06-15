@@ -181,6 +181,7 @@
     border-radius:999px; padding:8px 13px; transition:border-color .15s, background .15s, color .15s}
   .chip2:hover{border-color:var(--ink-faint)}
   .chip2[aria-pressed="true"]{background:var(--ink); color:var(--paper); border-color:var(--ink)}
+  .chip2 small{display:block; font-weight:600; font-size:.72rem; opacity:.65; margin-top:1px}
   .choice{display:flex; gap:9px; flex-direction:column; align-items:center; margin-top:6px}
   .choice .btn{min-width:248px}
   .choice .or{color:var(--ink-faint); font-size:.84rem}
@@ -514,30 +515,58 @@
   var QUALITIES = [
     {key:'tight', label:'tight / clenched'}, {key:'hot', label:'hot / burning'},
     {key:'cold', label:'cold / chilled'}, {key:'heavy', label:'heavy / sinking'},
-    {key:'light', label:'light / open'}, {key:'fluttery', label:'fluttery / racing'},
-    {key:'queasy', label:'queasy / turning'}, {key:'numb', label:'numb / flat'}
+    {key:'light', label:'light / airy'}, {key:'racing', label:'racing / pounding'},
+    {key:'buzzy', label:'buzzy / tingling'}, {key:'queasy', label:'queasy / turning'},
+    {key:'numb', label:'numb / flat'}, {key:'jolt', label:'jolt / jumpy'}
   ];
   // per-feeling body signature (quality + valence). regions come from SEGMENTS.
+  // ⚠ Lisa's redline (MODEL §6): the body is the tie-breaker within a coarse quadrant.
   var SIGNATURE = {
     anger:{qualities:['hot','tight'], valence:-0.6},
-    joy:{qualities:['light','fluttery'], valence:0.9},
+    fear:{qualities:['cold','racing','tight'], valence:-0.7},
     disgust:{qualities:['queasy','tight'], valence:-0.7},
     sadness:{qualities:['heavy','numb'], valence:-0.7},
-    fear:{qualities:['fluttery','cold','tight'], valence:-0.7},
-    surprise:{qualities:['fluttery'], valence:0}
+    joy:{qualities:['light','buzzy'], valence:0.9},
+    surprise:{qualities:['jolt','racing'], valence:0}
   };
+  // the coarse rung — the nervous system's accelerator/brake (+ shutdown).
+  var AUTONOMIC = [
+    {key:'fast', label:'speeding up', hint:'heart, breath, buzzing'},
+    {key:'settled', label:'settled', hint:'calm, steady'},
+    {key:'shutdown', label:'shut down', hint:'numb, still, far away'}
+  ];
+  var VALENCE = [
+    {key:'good', label:'good'}, {key:'bad', label:'bad'}, {key:'unsure', label:'hard to tell'}
+  ];
 
-  var sel = {regions:[], qualities:[]};
+  var sel = {autonomic:null, valence:null, regions:[], qualities:[]};
   function clearNarrow(){
     wheel.classList.remove('narrowed');
     wheel.querySelectorAll('.seg, .seglabel').forEach(function(p){ p.classList.remove('is-candidate'); });
   }
-  function chipRow(items, type){
-    return '<div class="chiprow">'+ items.map(function(it){
-      var on = sel[type].indexOf(it.key)>-1;
-      return '<button class="chip2" type="button" data-type="'+type+'" data-key="'+it.key+
-        '" aria-pressed="'+on+'">'+esc(it.label)+'</button>';
-    }).join('')+'</div>';
+  function chip(it, type, single){
+    var on = single ? sel[type]===it.key : sel[type].indexOf(it.key)>-1;
+    return '<button class="chip2" type="button" data-type="'+type+'" data-key="'+it.key+
+      '" data-single="'+(single?'1':'')+'" aria-pressed="'+on+'">'+esc(it.label)+
+      (it.hint?'<small>'+esc(it.hint)+'</small>':'')+'</button>';
+  }
+  function row(items, type, single){
+    return '<div class="chiprow">'+items.map(function(it){return chip(it,type,single);}).join('')+'</div>';
+  }
+  function bindChips(){
+    journeyEl.querySelectorAll('.chip2').forEach(function(b){
+      b.addEventListener('click', function(){
+        var t=b.getAttribute('data-type'), k=b.getAttribute('data-key'), single=b.getAttribute('data-single');
+        if(single){
+          sel[t] = (sel[t]===k) ? null : k;
+          journeyEl.querySelectorAll('.chip2[data-type="'+t+'"]').forEach(function(x){
+            x.setAttribute('aria-pressed', x.getAttribute('data-key')===sel[t]); });
+        } else {
+          var i=sel[t].indexOf(k); if(i>-1) sel[t].splice(i,1); else sel[t].push(k);
+          b.setAttribute('aria-pressed', sel[t].indexOf(k)>-1);
+        }
+      });
+    });
   }
   function showChoice(){
     journeyEl.hidden=false; clearNarrow();
@@ -550,7 +579,7 @@
         '<span class="or">or</span>'+
         '<button class="btn ghost" type="button" id="jName">I already know what I feel</button>'+
       '</div>';
-    journeyEl.querySelector('#jFeel').addEventListener('click', showNotice);
+    journeyEl.querySelector('#jFeel').addEventListener('click', showCoarse);
     journeyEl.querySelector('#jName').addEventListener('click', startNaming);
     journeyEl.querySelector('#jFeel').focus();
   }
@@ -559,39 +588,71 @@
     renderPanel('prompt');
     var f=wheel.querySelector('.seg'); if(f) f.focus();
   }
-  function showNotice(){
-    sel={regions:[], qualities:[]};
+  var nav = '<div class="choice"><button class="btn" type="button" id="jNext"></button>'+
+            '<button class="btn ghost" type="button" id="jBack">← back</button></div>';
+  function step(html, nextLabel, nextFn, backFn){
     journeyEl.hidden=false; clearNarrow(); wheel.style.pointerEvents='none';
-    journeyEl.innerHTML =
-      '<p class="q">where do you feel it?</p>'+
-      '<p class="sub2">tap any that fit — there’s no wrong answer.</p>'+
-      chipRow(REGIONS,'regions')+
-      '<p class="q">what’s it like?</p>'+
-      chipRow(QUALITIES,'qualities')+
-      '<div class="choice">'+
-        '<button class="btn" type="button" id="jShow">show me what this might be</button>'+
-        '<button class="btn ghost" type="button" id="jBack">← back</button>'+
-      '</div>';
-    journeyEl.querySelectorAll('.chip2').forEach(function(b){
-      b.addEventListener('click', function(){
-        var t=b.getAttribute('data-type'), k=b.getAttribute('data-key'), i=sel[t].indexOf(k);
-        if(i>-1) sel[t].splice(i,1); else sel[t].push(k);
-        b.setAttribute('aria-pressed', sel[t].indexOf(k)>-1);
-      });
-    });
-    journeyEl.querySelector('#jShow').addEventListener('click', doNarrow);
-    journeyEl.querySelector('#jBack').addEventListener('click', showChoice);
+    journeyEl.innerHTML = html + nav;
+    bindChips();
+    var n=journeyEl.querySelector('#jNext'); n.textContent=nextLabel;
+    n.addEventListener('click', nextFn);
+    journeyEl.querySelector('#jBack').addEventListener('click', backFn);
   }
-  function scoreSeg(s){
-    var sig=SIGNATURE[s.key]||{qualities:[]}, sc=0;
-    sel.qualities.forEach(function(q){ if(sig.qualities.indexOf(q)>-1) sc+=2; });
+  // RUNG 1 — coarse: the nervous system's gear, then good/bad. The easiest read.
+  function showCoarse(){
+    sel={autonomic:null, valence:null, regions:[], qualities:[]};
+    panel.className='panel idle'; panel.innerHTML='';
+    step(
+      '<p class="q">how’s your body right now?</p>'+
+      '<p class="sub2">the easiest read — just the gear it’s in.</p>'+
+      row(AUTONOMIC,'autonomic',true)+
+      '<p class="q">and does it feel…</p>'+
+      row(VALENCE,'valence',true),
+      'next →', showWhere, showChoice);
+  }
+  // RUNG 2 — where in the body.
+  function showWhere(){
+    step(
+      '<p class="q">where do you feel it?</p>'+
+      '<p class="sub2">tap any that fit — skip if you’re not sure.</p>'+
+      row(REGIONS,'regions',false),
+      'next →', showWhat, showCoarse);
+  }
+  // RUNG 3 — what's it like: PROGRESSIVE — only the qualities still in play.
+  function showWhat(){
+    var ranked = SEGMENTS.map(function(s){ return {s:s, sc:coarseScore(s)}; })
+      .sort(function(a,b){ return b.sc-a.sc; });
+    var live = ranked.filter(function(o){ return o.sc>0; });
+    var pool = (live.length ? live : ranked).slice(0,4).map(function(o){ return o.s.key; });
+    var qk={}; pool.forEach(function(k){ (SIGNATURE[k].qualities||[]).forEach(function(q){ qk[q]=1; }); });
+    var qs = QUALITIES.filter(function(q){ return qk[q.key]; });
+    step(
+      '<p class="q">what’s it like?</p>'+
+      '<p class="sub2">just the sensations that fit where you are.</p>'+
+      row(qs,'qualities',false),
+      'show me what this might be', doNarrow, showWhere);
+  }
+  function coarseScore(s){
+    var sig=SIGNATURE[s.key], sc=0, ar=s.arousal;
+    if(sel.autonomic==='fast' && ar>=70) sc+=2;
+    if(sel.autonomic==='settled' && ar<60) sc+=1;
+    if(sel.autonomic==='shutdown' && ar<60) sc+=2;
+    if(sel.valence==='good' && sig.valence>0.2) sc+=2;
+    if(sel.valence==='bad' && sig.valence<-0.2) sc+=2;
     sel.regions.forEach(function(r){
       if((s.regions||[]).indexOf(r)>-1) sc+=1;
       else if(r==='full' && (s.regions||[]).indexOf('full')>-1) sc+=1; });
     return sc;
   }
+  function scoreSeg(s){
+    var sig=SIGNATURE[s.key], sc=coarseScore(s);
+    sel.qualities.forEach(function(q){ if(sig.qualities.indexOf(q)>-1) sc+=2; });
+    return sc;
+  }
   function doNarrow(){
-    if(!sel.regions.length && !sel.qualities.length){ return; } // nothing picked yet
+    if(!(sel.autonomic||sel.valence||sel.regions.length||sel.qualities.length)){
+      journeyEl.hidden=true; wheel.style.pointerEvents=''; renderPanel('prompt'); return;
+    }
     var top = SEGMENTS.map(function(s,i){ return {i:i, s:s, sc:scoreSeg(s)}; })
       .filter(function(o){ return o.sc>0; })
       .sort(function(a,b){ return b.sc-a.sc; }).slice(0,3);
