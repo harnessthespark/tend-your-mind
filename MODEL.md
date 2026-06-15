@@ -48,8 +48,8 @@ Each emotion is a **range from mild → intense**, not one icon. The granular na
 | **Fear** | **fog** | thin mist (unease) → thick fog (panic) — *the alarm gone haywire: shapes in the mist that may not be there, can't see what's real* |
 | **Sadness** | rain | drizzle (melancholy) → downpour (grief) |
 | **Enjoyment** | sun | sunny intervals (contentment) → blazing sun (happy) → rainbow (ecstasy) |
-| **Disgust** | ⚠️ NEEDS LISA — *a sour, stagnant haze? a bad wind / smog?* (fog moved to fear) | — |
-| **Surprise** | ⚠️ NEEDS LISA — *a sudden flash / a break in the cloud?* | — |
+| **Disgust** | a sour, stagnant haze / smog | faint off-smell (distaste) → thick choking smog (revulsion); lifts when you move from the source |
+| **Surprise** | a sudden break in the sky (flash / gust) | the **fork**, not a destination: brief + neutral, then breaks by appraisal — **good → sun/rainbow**, **bad → storm or fog/alarm**. No pair; doesn't fit the mild→intense radius (it's *brief → fork*). The pure interoceptive jolt before valence decides the next weather. |
 
 ### Intensity = the radius
 Show intensity **spatially**: near the **hub = mild**, out at the **rim = intense**. Tap the slice for *which* weather; reach out for *how much*. (This is the brief's "inner cores / outer granular" idea — now with a reason: the radius **is** the intensity.)
@@ -117,12 +117,35 @@ Redline notes: split overloaded `fluttery` → racing (fear) / buzzy (joy) / jol
 
 ---
 
-## 7. Open questions (NEEDS LISA)
+## 7. Perspective — the shed vs the exposed garden
 
-- Disgust & surprise **weather** (§2).
-- **SIGNATURE** redline — qualities per feeling; vocab size (~8 tight vs ~10 rich) (§6).
-- Autonomic rung: **2 or 3 states** on first ask (§3).
-- **Flat 6-disc art** (faceted, top-down) vs warming the code wheel.
-- **Body figure** in the drill-down — soften / swap / drop.
-- Cerebellum — **woven into the Gardener** (the *how*) or its **own character** (§1).
-- Insula = sundial framing — say it in-tool? (§1)
+The spine made into a **place you can move to.**
+
+- **Exposed in the garden** = *fused* with the feeling — the storm happens *to* you, no distance, gardener locked out.
+- **In the potting shed, watching through the windows** = the **observer self** — same storm, but seen, named, known to pass. *"You are the gardener and the sky, not the storm."*
+
+This is the **cerebellum's distancing / reappraisal** made concrete, and the regulation move the garden implies (*you can't prune with the alarm blaring — but you can shelter and watch it blow over*). **`inside-shed.png` already depicts this vantage** (interior, windows onto the garden) — it was drawn for exactly this.
+
+So the **Potting Shed gains a second role beside memory: the vantage point.** Possible build move: **"step into the shed" = take perspective** — shifts you from *in it* → *watching it from shelter*, especially at high weather-intensity.
+
+**Nuance (keep it healthy):** the shed is to **move between**, not hide in. Stepping in when flooded = regulation; living there = avoidance/dissociation. The skill is the *movement* (cerebellum: knowing *when*).
+
+---
+
+## 8. Decisions (2026-06-16) & what's still open
+
+**Locked:**
+- Disgust = sour/stagnant haze (smog); Surprise = sudden gust/flash (§2).
+- SIGNATURE: **richer ~10-quality vocab + progressive reveal** (user only ever sees the 3–4 still in play) (§6).
+- Autonomic rung: **three states** (accelerate · settle · shutdown) — settle and shutdown are *opposite* in wellbeing, can't be merged (§3).
+- Flat disc: **Lisa draws the faceted 6-disc**; code wheel **warmed** as interim.
+- Body figure: **soften** to a warm hand-drawn outline (don't drop — the body is the bridge); long-game = map "where it lands" to garden places.
+- Cerebellum: **woven into the Gardener** as the green thumb (not its own character).
+- Insula = sundial: **say it once, softly** (coach-note aside).
+- **Perspective: "step into the shed" as a regulation move** (§7).
+
+**Still genuinely open:**
+- SIGNATURE cells to verify with a clinician: joy = warm/light; lump-in-throat / breathless additions (§6).
+- The §6 sensation→garden-place map (chest=greenhouse…) — for the cast + the "where it lands" reframe.
+- The drawn 6-disc art (Lisa, when time allows).
+- "Step into the shed": always-available, or surfaced at high weather-intensity?
