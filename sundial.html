@@ -189,13 +189,14 @@
   <p class="sr-only" id="srSummary"></p>
 
   <div class="todo">
-    <b>✓ Resolved — Seeking &amp; Care are climate, not weather.</b> They carry a steady glow
-    (Seeking warm = the sun/source, Care cool = a warm front) and the readout says so. The dial
-    now teaches the spine itself: 6 segments are weather that passes, 2 are climate you tend.<br><br>
-    <b>⚠ Still NEEDS LISA — confirm the 8 line-up.</b> Proposed clockwise from the top:
-    anger · <i>seeking</i> · joy · disgust · <i>care</i> · sadness · fear · surprise
-    (italics = climate), sampled from your disc colours. Confirm or swap any — it's one editable
-    block at the top of the script (<code>SEGMENTS</code>).
+    <b>✓ A weather-only wheel — 6 segments.</b> Seeking and Care came off: a "today's weather"
+    wheel should be weather, and they aren't. Their homes:
+    <b>Seeking = the sun</b> (the drive that casts the shadow — not a slice), and
+    <b>Care = the relational layer</b> (connection/tending, not a weather you're in).<br><br>
+    The six, clockwise from the top: anger · joy · disgust · sadness · fear · surprise — all
+    genuine weather, all in one editable <code>SEGMENTS</code> block.<br><br>
+    <b>⚠ Note:</b> the drawn disc art still shows 8 colour segments; the flat working wheel is
+    code-drawn as a clean 6. They'll match once the disc is redrawn for 6.
   </div>
 </div>
 
@@ -226,9 +227,6 @@
        a:{t:'frustration', b:'pressure without release'},
        c:{t:'anger', b:'heat, energy surge'},
        note:'a blocked goal, or a real injustice — the body tells them apart.'}},
-    {key:'seeking', label:'seeking', color:'#e89527', mode:'climate', glow:'warm',
-     line:'the sun itself — not a weather, but the light every feeling is shaped from.',
-     connect:'the always-on pull toward growth — every plant leaning to the light. you tend it, you don’t wait it out.'},
     {key:'joy', label:'joy', color:'#e7b91f', mode:'weather', kind:'sun',
      line:'bright, open sky — even sunshine is in motion.',
      sens:'warmth, lightness, energy, tingling', regions:['full'], arousal:90,
@@ -243,9 +241,6 @@
        a:{t:'guilt', b:'stomach drop, restlessness'},
        c:{t:'shame', b:'full-body heat, collapse urge'},
        note:'self-conscious feelings, parked here honestly — shame is close to self-directed disgust; guilt shares the gut.'}},
-    {key:'care', label:'care', color:'#1f9a9a', mode:'climate', glow:'cool',
-     line:'a warm front — the mild spell you tend over seasons, and between gardens.',
-     connect:'runs on the same chemistry as grief — the bond it builds is the bond that aches when it’s lost.'},
     {key:'sadness', label:'sadness', color:'#2f63b3', mode:'weather', kind:'rain',
      line:'steady rain — heavy to stand in, and it waters things.',
      sens:'heaviness, tightness, fatigue, throat constriction', regions:['chest','throat','limbs'], arousal:25,
