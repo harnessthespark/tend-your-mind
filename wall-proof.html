@@ -1,0 +1,314 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The wall — crack→moss drift (web proof)</title>
+<!--
+  Standalone proof for The Garden's "container" wall.
+  Purpose: show the web (SVG/CSS/JS) ceiling for the ambient drift mechanic
+  BEFORE deciding whether Unity is worth the rebuild.
+  Everything here is procedural placeholder brick — Lisa's wall.svg replaces it.
+  No build step, no deps. Open via http:// or file://, both fine.
+-->
+<style>
+  :root{
+    --paper:#f5efe2; --card:#fbf7ee; --ink:#3b4136;
+    --moss:#6f8f5e; --moss-deep:#54713e; --sage:#cdd8bf;
+    --soil:#8a6f51; --terra:#d98c5f; --cool:#8fb0c4; --alarm:#cf7a52;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0}
+  body{
+    background:var(--paper); color:var(--ink);
+    font:16px/1.5 "Atkinson Hyperlegible", system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+    -webkit-font-smoothing:antialiased;
+    display:flex; flex-direction:column; align-items:center;
+    padding:32px 20px 56px; min-height:100vh;
+  }
+  h1{font-size:1.35rem; font-weight:800; margin:0 0 4px; letter-spacing:.2px}
+  .sub{color:#6b7065; font-size:.95rem; margin:0 0 22px; max-width:640px; text-align:center}
+
+  .frame{
+    width:min(720px, 100%);
+    border-radius:14px; overflow:hidden;
+    box-shadow:0 10px 34px rgba(59,65,54,.18), 0 2px 6px rgba(59,65,54,.10);
+    background:#cdbfae;
+  }
+  svg{display:block; width:100%; height:auto}
+
+  /* cross-fade transitions — gentle, opacity only (calm; reduced-motion safe) */
+  #gMoss, #gIvy, #gFlowers, #gLight, .seal{
+    transition:opacity 900ms ease;
+  }
+  @media (prefers-reduced-motion: reduce){
+    #gMoss, #gIvy, #gFlowers, #gLight, .seal{ transition:opacity 1ms; }
+  }
+
+  .panel{
+    width:min(720px,100%); margin-top:22px;
+    background:var(--card); border:1px solid #e7dfcd; border-radius:12px;
+    padding:18px 20px;
+  }
+  .readout{
+    display:flex; align-items:baseline; gap:10px; margin-bottom:14px;
+  }
+  .readout b{font-size:1.05rem}
+  .readout .pct{font-variant-numeric:tabular-nums; color:var(--moss-deep); font-weight:800}
+  .readout .whisper{color:#8a8f83; font-size:.9rem; font-style:italic; margin-left:auto}
+
+  input[type=range]{ width:100%; accent-color:var(--moss); height:26px }
+  .row{display:flex; gap:12px; flex-wrap:wrap; align-items:center; margin-top:14px}
+  button{
+    font:inherit; font-weight:700; cursor:pointer;
+    background:var(--moss); color:#fff; border:none;
+    border-radius:999px; padding:10px 18px;
+  }
+  button:hover{background:var(--moss-deep)}
+  button.ghost{background:transparent; color:var(--moss-deep); border:1.5px solid var(--sage)}
+  button.ghost:hover{background:#eef2e6}
+  .note{margin-top:16px; font-size:.9rem; color:#6b7065; line-height:1.55}
+  .note b{color:var(--ink)}
+  .legend{display:flex; gap:18px; flex-wrap:wrap; margin-top:10px; font-size:.82rem; color:#7a7f73}
+  .legend span{display:inline-flex; align-items:center; gap:6px}
+  .sw{width:12px; height:12px; border-radius:3px; display:inline-block}
+</style>
+</head>
+<body>
+  <h1>The wall — it quietly knits</h1>
+  <p class="sub">The container that holds the garden. You never tend it directly — but as you tend across sessions, the cracks acquire moss, ivy and wildflowers come through the gaps, and the light softens. <b>Nothing is announced.</b> This is pure web (SVG + CSS + JS) — no engine.</p>
+
+  <div class="frame">
+    <svg id="wall" viewBox="0 0 720 360" role="img" aria-label="A weathered old brick boundary wall, holding the garden, slowly knitting itself more whole.">
+      <defs>
+        <linearGradient id="lightGrad" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0" stop-color="#fff4d8" stop-opacity="0.9"/>
+          <stop offset="1" stop-color="#f6d9a3" stop-opacity="0"/>
+        </linearGradient>
+        <radialGradient id="vignette" cx="0.5" cy="0.4" r="0.75">
+          <stop offset="0.55" stop-color="#000" stop-opacity="0"/>
+          <stop offset="1" stop-color="#000" stop-opacity="0.22"/>
+        </radialGradient>
+      </defs>
+      <g id="gWall"></g>      <!-- bricks + mortar -->
+      <g id="gLight"></g>     <!-- warm light through the cracks -->
+      <g id="gCracks"></g>    <!-- the open gaps (some seal, one stays open-but-greened) -->
+      <g id="gMoss"></g>      <!-- moss creeping into the cracks -->
+      <g id="gIvy"></g>       <!-- ivy through the gaps -->
+      <g id="gFlowers"></g>   <!-- wildflowers at the base of the gaps -->
+      <rect x="0" y="0" width="720" height="360" fill="url(#vignette)" pointer-events="none"/>
+    </svg>
+  </div>
+
+  <div class="panel">
+    <div class="readout">
+      <b>integrity</b><span class="pct" id="pct">0%</span>
+      <span class="whisper" id="whisper">freshly weathered — cracked, but standing</span>
+    </div>
+    <input type="range" id="slider" min="0" max="100" value="0" aria-label="Wall integrity">
+    <div class="row">
+      <button id="tend">Tend a session →</button>
+      <button class="ghost" id="reset">reset</button>
+    </div>
+    <div class="legend">
+      <span><i class="sw" style="background:var(--terra)"></i>brick</span>
+      <span><i class="sw" style="background:var(--moss)"></i>moss</span>
+      <span><i class="sw" style="background:var(--moss-deep)"></i>ivy</span>
+      <span><i class="sw" style="background:#f3c34a"></i>wildflowers</span>
+      <span><i class="sw" style="background:#fde6bf"></i>light</span>
+    </div>
+    <p class="note"><b>The mechanic:</b> in the real build, <b>integrity</b> nudges up a hair each session you tend the garden (a bloom planted, a weed worked, the bucket filled) — never a slider, never a number the client sees. They just notice, three visits later, it looks a little more whole than it felt. One crack is left <b>open-but-greened</b> on purpose: vulnerability that became character, not damage that got sealed away. <b>“Ancient and held-together, not damaged.”</b></p>
+  </div>
+
+<script>
+(function(){
+  "use strict";
+  var W=720, H=360;
+  var ns="http://www.w3.org/2000/svg";
+  function el(name, attrs){
+    var e=document.createElementNS(ns,name);
+    if(attrs) for(var k in attrs) e.setAttribute(k, attrs[k]);
+    return e;
+  }
+  // deterministic PRNG so the wall is stable across reloads
+  function mulberry32(a){ return function(){ a|=0; a=a+0x6D2B79F5|0; var t=Math.imul(a^a>>>15,1|a); t=t+Math.imul(t^t>>>7,61|t)^t; return ((t^t>>>14)>>>0)/4294967296; }; }
+  var rnd=mulberry32(20260605);
+  function jitter(hex, d){ // nudge a hex colour by ±d on each channel
+    var n=parseInt(hex.slice(1),16), r=(n>>16)&255,g=(n>>8)&255,b=n&255;
+    function c(x){ return Math.max(0,Math.min(255, x + Math.round((rnd()*2-1)*d))); }
+    return "rgb("+c(r)+","+c(g)+","+c(b)+")";
+  }
+  function clamp01(x){ return x<0?0:x>1?1:x; }
+  function ramp(v, a, b){ return clamp01((v-a)/(b-a)); } // 0 below a, 1 above b
+
+  var gWall=document.getElementById("gWall"),
+      gLight=document.getElementById("gLight"),
+      gCracks=document.getElementById("gCracks"),
+      gMoss=document.getElementById("gMoss"),
+      gIvy=document.getElementById("gIvy"),
+      gFlowers=document.getElementById("gFlowers");
+
+  // ---- bricks ----
+  var rowH=26, gap=3, bw=64;
+  var y=2, row=0;
+  while(y < H-1){
+    var off = (row%2) ? -bw/2 : 0;
+    var x=2+off;
+    while(x < W){
+      var w = Math.min(bw, W-x) - gap;
+      if(w>6){
+        var base = rnd()<0.5 ? "#c07b50" : "#b06a45"; // terracotta / soil-ish
+        var fill = jitter(base, 16);
+        var r=el("rect",{x:x, y:y, width:w, height:rowH-gap, rx:2, ry:2, fill:fill});
+        gWall.appendChild(r);
+        // weathered patch
+        if(rnd()<0.22){
+          gWall.appendChild(el("rect",{x:x+rnd()*w*0.5, y:y+rnd()*(rowH-gap)*0.4,
+            width:w*(0.3+rnd()*0.4), height:(rowH-gap)*(0.3+rnd()*0.4), rx:3,
+            fill:"#5e4733", opacity:(0.06+rnd()*0.10).toFixed(2)}));
+        }
+      }
+      x += bw;
+    }
+    y += rowH; row++;
+  }
+  // mortar wash + soft top shadow
+  gWall.insertBefore(el("rect",{x:0,y:0,width:W,height:H,fill:"#7c6147"}), gWall.firstChild);
+
+  // ---- cracks: jagged top→down paths. seal[] = true means it heals over with integrity ----
+  // last one is the "kept open" crack (greened, never sealed).
+  var crackDefs=[
+    {x:150, seal:true},
+    {x:430, seal:true},
+    {x:585, seal:false}   // open-but-greened
+  ];
+  var cracks=[];
+  crackDefs.forEach(function(cd){
+    var px=cd.x, d="M"+px+" -4", pts=[[px,-4]];
+    var yy=0;
+    while(yy<H){
+      yy += 14+rnd()*22;
+      px += (rnd()*2-1)*16;
+      d += " L"+px.toFixed(1)+" "+yy.toFixed(1);
+      pts.push([px,yy]);
+    }
+    // warm light bleeding through, behind the dark gap
+    var light=el("path",{d:d, fill:"none", stroke:"url(#lightGrad)", "stroke-width":7,
+      "stroke-linecap":"round", "stroke-linejoin":"round", opacity:0.0});
+    gLight.appendChild(light);
+    // the dark open gap itself
+    var gapPath=el("path",{d:d, fill:"none", stroke:"#2c2117", "stroke-width":3.2,
+      "stroke-linecap":"round", "stroke-linejoin":"round", opacity:0.85});
+    if(cd.seal) gapPath.setAttribute("class","seal");
+    gCracks.appendChild(gapPath);
+    cracks.push({pts:pts, seal:cd.seal, light:light, gap:gapPath});
+  });
+
+  // ---- moss: clustered blobs hugging each crack ----
+  cracks.forEach(function(c){
+    c.pts.forEach(function(p, i){
+      if(i===0) return;
+      var n=2+Math.floor(rnd()*3);
+      for(var k=0;k<n;k++){
+        var mx=p[0]+(rnd()*2-1)*9, my=p[1]+(rnd()*2-1)*9;
+        var rad=2+rnd()*4;
+        var col = rnd()<0.5 ? "#6f8f5e" : "#54713e";
+        gMoss.appendChild(el("circle",{cx:mx.toFixed(1), cy:my.toFixed(1), r:rad.toFixed(1),
+          fill:col, opacity:(0.55+rnd()*0.4).toFixed(2)}));
+      }
+    });
+  });
+  gMoss.setAttribute("opacity","0");
+
+  // ---- ivy: a climbing vine with leaves near the open crack ----
+  (function(){
+    var sx=585, d="M"+sx+" "+H, x=sx, yy=H;
+    var leaves=[];
+    while(yy>40){
+      yy -= 18+rnd()*10;
+      x += (rnd()*2-1)*22;
+      d += " Q"+(x+12)+" "+(yy+8)+" "+x.toFixed(1)+" "+yy.toFixed(1);
+      if(rnd()<0.8) leaves.push([x,yy]);
+    }
+    gIvy.appendChild(el("path",{d:d, fill:"none", stroke:"#4f6b3c", "stroke-width":2.4,
+      "stroke-linecap":"round"}));
+    leaves.forEach(function(p){
+      var s=4+rnd()*3, rot=(rnd()*60-30).toFixed(0);
+      var leaf=el("path",{d:"M0 0 C "+s+" "+(-s)+", "+s+" "+s+", 0 "+(s*1.4)+" C "+(-s)+" "+s+", "+(-s)+" "+(-s)+", 0 0 Z",
+        fill: rnd()<0.5?"#6f8f5e":"#557a3e",
+        transform:"translate("+p[0].toFixed(1)+","+p[1].toFixed(1)+") rotate("+rot+")"});
+      gIvy.appendChild(leaf);
+    });
+  })();
+  gIvy.setAttribute("opacity","0");
+
+  // ---- wildflowers: small clusters at the base of the gaps ----
+  function flowerAt(cx, cy, petal){
+    var g=el("g",{transform:"translate("+cx+","+cy+")"});
+    for(var i=0;i<5;i++){
+      var a=i/5*Math.PI*2;
+      g.appendChild(el("circle",{cx:(Math.cos(a)*4).toFixed(1), cy:(Math.sin(a)*4).toFixed(1), r:3, fill:petal}));
+    }
+    g.appendChild(el("circle",{cx:0,cy:0,r:2.4, fill:"#f3c34a"}));
+    return g;
+  }
+  var petals=["#e7b6c8","#f0e2a6","#cdb9e0","#f2c0a0"];
+  [150,430,585].forEach(function(bx){
+    var n=3+Math.floor(rnd()*3);
+    for(var i=0;i<n;i++){
+      gFlowers.appendChild(flowerAt(bx+(rnd()*2-1)*26, H-8-rnd()*40, petals[Math.floor(rnd()*petals.length)]));
+    }
+  });
+  gFlowers.setAttribute("opacity","0");
+
+  // ---------- the drift mapping: integrity (0..1) → the scene ----------
+  var slider=document.getElementById("slider"),
+      pct=document.getElementById("pct"),
+      whisper=document.getElementById("whisper");
+  var whispers=[
+    [0.0,"freshly weathered — cracked, but standing"],
+    [0.2,"a little moss, finding its footing"],
+    [0.45,"the gaps are greening over"],
+    [0.7,"ivy and wildflowers have taken hold"],
+    [0.9,"ancient, held-together — more whole than it felt"]
+  ];
+
+  function apply(v){           // v in 0..1
+    var moss = ramp(v,0.05,0.65);
+    var ivy  = ramp(v,0.25,0.95);
+    var flow = ramp(v,0.40,1.0);
+    gMoss.setAttribute("opacity", moss.toFixed(3));
+    gIvy.setAttribute("opacity", ivy.toFixed(3));
+    gFlowers.setAttribute("opacity", flow.toFixed(3));
+    cracks.forEach(function(c){
+      if(c.seal){ c.gap.setAttribute("opacity", (0.85*(1-0.7*moss)).toFixed(3)); } // sealing cracks fade as moss fills
+      // light through cracks: present, but softens as the wall knits
+      c.light.setAttribute("opacity", (0.5*(1-0.45*v)).toFixed(3));
+    });
+    pct.textContent=Math.round(v*100)+"%";
+    var w=whispers[0][1];
+    for(var i=0;i<whispers.length;i++){ if(v>=whispers[i][0]) w=whispers[i][1]; }
+    whisper.textContent=w;
+  }
+
+  // persistence — mirrors the real garden.wall.integrity (silent resume)
+  var KEY="wall.proof.integrity";
+  function read(){ try{ var s=localStorage.getItem(KEY); return s==null?0:Math.max(0,Math.min(1,parseFloat(s))); }catch(e){ return 0; } }
+  function write(v){ try{ localStorage.setItem(KEY, String(v)); }catch(e){} }
+
+  var integ=read();
+  slider.value=Math.round(integ*100);
+  apply(integ);
+
+  slider.addEventListener("input", function(){ integ=this.value/100; write(integ); apply(integ); });
+  document.getElementById("tend").addEventListener("click", function(){
+    integ=Math.min(1, integ + 0.08);  // a hair, like a real session
+    slider.value=Math.round(integ*100); write(integ); apply(integ);
+  });
+  document.getElementById("reset").addEventListener("click", function(){
+    integ=0; slider.value=0; write(0); apply(0);
+  });
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,910 @@
+<!DOCTYPE html>
+<!--
+  WORKING TITLE: "the anxious brain"  (placeholder — Lisa to name)
+  Prototype: a calm, guided journey through a solution-focused model of how
+  anxiety works in the brain, and how to shift it. Vertical slice:
+    - Welcome
+    - Stage 1: Meet your brain  (fully built)
+    - Stages 2-6: titles + teasers present in the path so the ARC is feelable
+  Design notes:
+    - Handwriting font (Caveat) used for HEADINGS ONLY. Body is Atkinson
+      Hyperlegible (designed for low-vision / dyslexia-friendly readability).
+    - The "shift": palette warms gently as you move through the six stages.
+    - prefers-reduced-motion fully respected.
+    - Crisis resources below are standard UK ones — Lisa to confirm preferred set.
+-->
+<html lang="en-GB">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>the anxious brain — a calm walk-through</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=Caveat:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  /* ---------- tokens ---------- */
+  :root{
+    --ink:#33414c;            /* soft charcoal-blue, never pure black */
+    --ink-soft:#5d6b74;
+    --ink-faint:#8a949b;
+    --paper:#f4eee2;          /* warm off-white "paper" */
+    --paper-edge:#ece4d3;
+    --accent:#7c9a7e;         /* sage (welcome) */
+    --accent-soft:#cdddc9;
+    --line:#cfc6b5;
+    --card:#fbf7ee;
+    --shadow:18px 18px 40px rgba(80,70,55,.10);
+    --radius:26px;
+    --maxw:760px;
+    --ease:cubic-bezier(.22,.61,.36,1);
+  }
+
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{
+    margin:0;
+    font-family:"Atkinson Hyperlegible",system-ui,sans-serif;
+    color:var(--ink);
+    background-color:var(--paper);
+    transition:background-color 1.3s var(--ease), color 1.3s var(--ease);
+    line-height:1.62;
+    -webkit-font-smoothing:antialiased;
+    overflow-x:hidden;
+  }
+
+  /* breathing glow + faint grain */
+  body::before{
+    content:"";
+    position:fixed; inset:-20%;
+    background:radial-gradient(closest-side, var(--accent-soft), transparent 70%);
+    opacity:.5;
+    transition:background 1.3s var(--ease), opacity 1.3s var(--ease);
+    z-index:0;
+    animation:breathe 9s ease-in-out infinite;
+    pointer-events:none;
+  }
+  body::after{
+    content:"";
+    position:fixed; inset:0;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.4'/%3E%3C/svg%3E");
+    opacity:.05;
+    mix-blend-mode:multiply;
+    pointer-events:none;
+    z-index:0;
+  }
+  @keyframes breathe{0%,100%{transform:scale(1)}50%{transform:scale(1.06)}}
+
+  .stage-wrap{position:relative; z-index:1; min-height:100%; display:flex; flex-direction:column}
+
+  /* ---------- header ---------- */
+  header{
+    display:flex; align-items:center; justify-content:space-between;
+    padding:18px clamp(18px,5vw,48px);
+    gap:16px;
+  }
+  .wordmark{
+    font-family:"Caveat",cursive;
+    font-size:1.6rem; font-weight:700;
+    color:var(--ink);
+    display:flex; align-items:center; gap:9px;
+    letter-spacing:.3px;
+  }
+  .wordmark .spark{
+    width:16px;height:16px;border-radius:50% 50% 50% 0;
+    background:var(--accent); transform:rotate(45deg);
+    transition:background 1.3s var(--ease);
+  }
+  .crisis-btn{
+    font-family:inherit; font-size:.86rem; font-weight:700;
+    color:var(--ink-soft); background:transparent;
+    border:1.5px solid var(--line); border-radius:999px;
+    padding:8px 16px; cursor:pointer;
+    transition:border-color .25s, color .25s, background .25s;
+    white-space:nowrap;
+  }
+  .crisis-btn:hover,.crisis-btn:focus-visible{border-color:var(--ink-soft); color:var(--ink)}
+  .head-actions{display:flex; gap:10px; align-items:center; flex-wrap:wrap; justify-content:flex-end}
+  .feel-btn{
+    font-family:inherit; font-size:.86rem; font-weight:700;
+    color:#fff; background:var(--accent); border:1.5px solid var(--accent);
+    border-radius:999px; padding:8px 16px; cursor:pointer;
+    box-shadow:0 8px 18px -10px var(--accent);
+    transition:transform .2s var(--ease), background 1.3s var(--ease);
+    white-space:nowrap;
+  }
+  .feel-btn:hover{transform:translateY(-1px)}
+
+  /* ---------- feelings check-in ---------- */
+  .feel-panel{
+    position:fixed; inset:0; z-index:60;
+    background:rgba(40,46,52,.5); backdrop-filter:blur(4px);
+    display:none; align-items:flex-start; justify-content:center;
+    padding:24px 16px; overflow:auto;
+  }
+  .feel-panel.open{display:flex; animation:rise .35s var(--ease) both}
+  .feel-card{
+    background:var(--card); border-radius:var(--radius); max-width:640px; width:100%;
+    padding:26px clamp(20px,4vw,40px) 32px; box-shadow:0 30px 70px -25px rgba(0,0,0,.45);
+    margin:auto;
+  }
+  .feel-card h3{font-family:"Caveat",cursive; font-size:2.2rem; margin:0 0 4px; line-height:1.05}
+  .feel-card .sub{color:var(--ink-soft); margin:0 0 16px; max-width:50ch; font-size:1rem}
+  .wheel-wrap{display:flex; justify-content:center; margin:4px 0 16px}
+  .wheel-wrap svg{width:min(330px,82vw); height:auto; overflow:visible}
+  .wedge{cursor:pointer}
+  .wedge path{stroke:var(--card); stroke-width:3; transition:fill .2s, opacity .3s}
+  .wheel-wrap.has-sel .wedge:not(.sel) path{opacity:.25}
+  .wedge:hover path{filter:brightness(.94)}
+  .wlabel{font-family:"Atkinson Hyperlegible",sans-serif; font-weight:700; font-size:12px;
+          fill:#3b3b3b; letter-spacing:.4px; pointer-events:none; text-anchor:middle; dominant-baseline:central}
+  .hub{font-family:"Caveat",cursive; font-size:17px; fill:var(--ink-soft); text-anchor:middle; dominant-baseline:central; pointer-events:none}
+
+  .crumbs{display:flex; gap:7px; flex-wrap:wrap; align-items:center; font-size:.9rem; color:var(--ink-soft); margin-bottom:10px; min-height:22px}
+  .crumbs button{background:none; border:none; cursor:pointer; font:inherit; color:var(--accent); font-weight:700; padding:0}
+  .crumbs button:hover{text-decoration:underline}
+  .crumbs .sep{color:var(--ink-faint)}
+  .prompt{font-weight:700; margin:0 0 12px; font-size:1.05rem}
+  .wordchips{display:flex; flex-wrap:wrap; gap:9px}
+  .wordchip{
+    font-family:inherit; font-size:.96rem; font-weight:700;
+    border:1.5px solid var(--line); background:var(--paper); color:var(--ink);
+    border-radius:999px; padding:9px 16px; cursor:pointer;
+    transition:transform .2s var(--ease), border-color .2s, background .2s;
+  }
+  .wordchip:hover{border-color:var(--ink-soft); transform:translateY(-1px)}
+  .wordchip.tier3{border-style:dashed}
+  .reflection{background:var(--accent-soft); border-radius:18px; padding:22px 24px; transition:background 1.3s var(--ease)}
+  .reflection .big{font-family:"Caveat",cursive; font-size:2.2rem; line-height:1; margin:0 0 10px; color:var(--ink)}
+  .reflection p{margin:0; font-size:1.02rem; max-width:none}
+  .feel-actions{display:flex; gap:12px; flex-wrap:wrap; margin-top:20px}
+
+  /* ---------- main panels ---------- */
+  main{flex:1; display:flex; align-items:flex-start; justify-content:center;
+       padding:8px clamp(18px,5vw,48px) 24px}
+  .panel{width:100%; max-width:var(--maxw); display:none; animation:rise .7s var(--ease) both}
+  .panel.active{display:block}
+  @keyframes rise{from{opacity:0; transform:translateY(16px)} to{opacity:1; transform:none}}
+
+  .eyebrow{
+    font-family:"Caveat",cursive; font-size:1.5rem; font-weight:600;
+    color:var(--accent); margin:0 0 2px;
+    transition:color 1.3s var(--ease);
+  }
+  h1{
+    font-family:"Caveat",cursive; font-weight:700;
+    font-size:clamp(2.6rem,7vw,4.1rem); line-height:1.02;
+    margin:.1em 0 .35em; color:var(--ink);
+  }
+  h2{
+    font-family:"Caveat",cursive; font-weight:700;
+    font-size:clamp(2rem,5.5vw,3rem); line-height:1.05;
+    margin:.1em 0 .4em;
+  }
+  .lede{font-size:1.18rem; color:var(--ink); max-width:54ch}
+  p{max-width:60ch}
+  .muted{color:var(--ink-soft)}
+  .fine{font-size:.85rem; color:var(--ink-faint)}
+
+  /* ---------- buttons ---------- */
+  .row{display:flex; gap:14px; align-items:center; flex-wrap:wrap; margin-top:28px}
+  .btn{
+    font-family:inherit; font-weight:700; font-size:1.02rem;
+    border:none; border-radius:999px; padding:15px 30px; cursor:pointer;
+    background:var(--accent); color:#fff;
+    box-shadow:0 10px 22px -10px var(--accent);
+    transition:transform .2s var(--ease), background 1.3s var(--ease), box-shadow .2s, opacity .2s;
+  }
+  .btn:hover{transform:translateY(-2px)}
+  .btn:active{transform:translateY(0)}
+  .btn.ghost{
+    background:transparent; color:var(--ink-soft);
+    box-shadow:none; padding:15px 18px;
+  }
+  .btn.ghost:hover{color:var(--ink)}
+  .btn:disabled{opacity:.35; cursor:default; transform:none}
+
+  /* ---------- stage 1 brain diagram ---------- */
+  .brain-stage{display:grid; grid-template-columns:1.1fr 1fr; gap:30px; align-items:center; margin-top:26px}
+  @media(max-width:680px){.brain-stage{grid-template-columns:1fr}}
+  .brain-fig{position:relative}
+  .brain-fig svg{width:100%; height:auto; display:block; overflow:visible}
+  .stroke{fill:none; stroke:var(--ink); stroke-width:2.4; stroke-linecap:round; stroke-linejoin:round}
+  .scribble{fill:none; stroke:var(--ink-soft); stroke-width:1.8; stroke-linecap:round}
+  .rough{filter:url(#rough)}  /* gives the line-art a hand-drawn marker wobble */
+  .zone-think{fill:var(--accent-soft); opacity:.42; transition:fill 1.3s var(--ease)}
+  .zone-prim{fill:#e3c4a3; opacity:.55}
+  .zlabel{font-family:"Caveat",cursive; font-size:19px; font-weight:600; fill:var(--ink-soft); opacity:.85}
+  .node{cursor:pointer}
+  .node circle{
+    fill:var(--card); stroke:var(--ink); stroke-width:2.4;
+    transition:fill .3s, stroke .3s, r .3s var(--ease);
+  }
+  .node .halo{fill:var(--accent); opacity:0; transform-origin:center; transition:opacity .3s}
+  .node:hover circle, .node:focus-visible circle{fill:var(--accent-soft)}
+  .node.sel circle{fill:var(--accent); stroke:var(--accent)}
+  .node.sel .halo{opacity:.25; animation:pulse 2.4s ease-in-out infinite}
+  @keyframes pulse{0%,100%{transform:scale(1); opacity:.22}50%{transform:scale(1.5); opacity:.05}}
+  .node text{font-family:"Caveat",cursive; font-size:19px; fill:var(--ink); font-weight:600}
+
+  .chips{display:flex; flex-wrap:wrap; gap:9px; margin:18px 0 4px}
+  .chip{
+    font-family:inherit; font-size:.92rem; font-weight:700;
+    border:1.5px solid var(--line); background:var(--card); color:var(--ink-soft);
+    border-radius:999px; padding:8px 15px; cursor:pointer;
+    transition:all .25s var(--ease);
+  }
+  .chip:hover{border-color:var(--ink-soft); color:var(--ink)}
+  .chip.sel{background:var(--accent); border-color:var(--accent); color:#fff}
+
+  .info{
+    background:var(--card); border:1.5px solid var(--line);
+    border-radius:var(--radius); padding:24px 26px; min-height:170px;
+    box-shadow:var(--shadow);
+  }
+  .info .tag{font-family:"Caveat",cursive; font-size:1.05rem; color:var(--accent); font-weight:700}
+  .info h3{font-family:"Caveat",cursive; font-weight:700; font-size:1.8rem; margin:.1em 0 .35em}
+  .info p{margin:0; font-size:1.02rem; max-width:none}
+  .info.empty{display:flex; align-items:center; justify-content:center; text-align:center; color:var(--ink-faint)}
+
+  .closing{
+    margin-top:30px; padding:22px 26px; border-left:4px solid var(--accent);
+    background:rgba(255,255,255,.45); border-radius:0 16px 16px 0;
+    transition:border-color 1.3s var(--ease);
+  }
+  .closing p{margin:0; font-size:1.08rem}
+
+  /* placeholder stages */
+  .placeholder{text-align:center; padding-top:14px}
+  .placeholder .num{font-family:"Caveat",cursive; font-size:6rem; font-weight:700; color:var(--accent); line-height:.8; transition:color 1.3s var(--ease)}
+  .placeholder .teaser{font-size:1.18rem; max-width:46ch; margin:14px auto 0}
+  .sketchnote{margin-top:24px; font-style:italic; color:var(--ink-faint); font-size:.95rem}
+
+  /* ---------- stage 2: the bear ---------- */
+  .bear-stage{display:grid; grid-template-columns:.82fr 1fr; gap:28px; align-items:center; margin-top:22px}
+  @media(max-width:680px){.bear-stage{grid-template-columns:1fr}}
+  .bear-fig svg{width:100%; max-width:240px; height:auto; display:block; margin:0 auto; overflow:visible}
+  .bear-body{fill:#cf9a6e; stroke:var(--ink); stroke-width:2.4; stroke-linejoin:round}
+  .bear-belly{fill:#ecd1b0; stroke:var(--ink); stroke-width:2}
+  .bear-twist{font-size:1.06rem}
+  .bear-twist em{font-style:normal; font-weight:700; color:var(--accent)}
+  .bear-choices{display:flex; flex-wrap:wrap; gap:10px; margin-top:6px}
+  .bear-card{
+    font-family:inherit; font-size:.97rem; font-weight:700; text-align:left;
+    border:1.5px solid var(--line); background:var(--card); color:var(--ink);
+    border-radius:15px; padding:11px 15px; cursor:pointer; display:flex; align-items:center; gap:9px;
+    transition:transform .2s var(--ease), border-color .2s, background .25s, color .25s;
+  }
+  .bear-card .em{font-size:1.2rem}
+  .bear-card:hover{border-color:var(--ink-soft); transform:translateY(-2px)}
+  .bear-card.sel{background:var(--accent); border-color:var(--accent); color:#fff}
+  .bear-reveal{margin-top:26px; background:var(--card); border:1.5px solid var(--line);
+               border-radius:var(--radius); padding:26px 28px; box-shadow:var(--shadow); animation:rise .5s var(--ease) both}
+  .bear-reveal h3{font-family:"Caveat",cursive; font-size:2.1rem; margin:0 0 8px; line-height:1.05}
+  .bear-reveal p{max-width:none}
+  .switches{display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin:18px 0 6px}
+  @media(max-width:540px){.switches{grid-template-columns:1fr}}
+  .switch{border:1.5px solid var(--line); border-radius:14px; padding:14px 10px; cursor:pointer;
+          text-align:center; background:var(--paper); transition:transform .2s var(--ease), border-color .2s, background .2s}
+  .switch:hover{border-color:var(--ink-soft); transform:translateY(-2px)}
+  .switch.sel{border-color:var(--accent); background:var(--accent-soft)}
+  .switch .sw-em{font-size:1.5rem; display:block; margin-bottom:4px}
+  .switch .sw-name{font-family:"Caveat",cursive; font-weight:700; font-size:1.3rem}
+  .switch .sw-desc{font-size:.8rem; color:var(--ink-soft); margin-top:3px; line-height:1.3}
+  .sw-msg{margin:12px 0 0; font-weight:700; color:var(--accent); min-height:1.4em; transition:color 1.3s var(--ease)}
+  .bear-note{margin-top:14px; font-size:1.02rem}
+
+  /* ---------- progress path ---------- */
+  .path{
+    position:relative; z-index:1;
+    display:flex; justify-content:center; gap:0;
+    padding:14px clamp(12px,4vw,40px) 30px; flex-wrap:wrap;
+  }
+  .node-link{
+    background:none; border:none; cursor:pointer; font-family:inherit;
+    display:flex; flex-direction:column; align-items:center; gap:7px;
+    width:clamp(70px,15vw,118px); padding:6px 2px; position:relative;
+    color:var(--ink-faint); transition:color .3s;
+  }
+  .node-link .dot{
+    width:30px;height:30px;border-radius:50%;
+    border:2px solid var(--line); background:var(--paper);
+    display:flex; align-items:center; justify-content:center;
+    font-family:"Caveat",cursive; font-weight:700; font-size:1.1rem; color:var(--ink-faint);
+    transition:all .3s var(--ease);
+  }
+  /* connecting dashed line */
+  .node-link::before{
+    content:""; position:absolute; top:21px; left:-50%; width:100%;
+    border-top:2px dashed var(--line);
+    z-index:-1;
+  }
+  .node-link:first-child::before{display:none}
+  .node-link .pl{font-size:.74rem; font-weight:700; line-height:1.15; text-align:center; max-width:11ch}
+  .node-link.done .dot{border-color:var(--accent); color:var(--accent)}
+  .node-link.current{color:var(--ink)}
+  .node-link.current .dot{background:var(--accent); border-color:var(--accent); color:#fff; transform:scale(1.12)}
+  .node-link:hover .dot{border-color:var(--ink-soft)}
+  @media(max-width:560px){
+    .node-link .pl{display:none}
+    .node-link{width:auto; min-width:44px}
+  }
+
+  /* ---------- crisis panel ---------- */
+  .crisis-panel{
+    position:fixed; inset:0; z-index:50;
+    background:rgba(40,46,52,.45); backdrop-filter:blur(3px);
+    display:none; align-items:center; justify-content:center; padding:20px;
+  }
+  .crisis-panel.open{display:flex; animation:rise .35s var(--ease) both}
+  .crisis-card{
+    background:var(--card); border-radius:var(--radius); max-width:440px; width:100%;
+    padding:30px 30px 26px; box-shadow:0 30px 60px -20px rgba(0,0,0,.4);
+  }
+  .crisis-card h3{font-family:"Caveat",cursive; font-size:2rem; margin:0 0 6px}
+  .crisis-card .res{display:block; margin:14px 0; padding:14px 16px; border:1.5px solid var(--line); border-radius:14px; text-decoration:none; color:var(--ink)}
+  .crisis-card .res strong{display:block; font-size:1.05rem}
+  .crisis-card .res span{color:var(--ink-soft); font-size:.92rem}
+  .crisis-card .close{margin-top:8px}
+
+  :focus-visible{outline:3px solid var(--accent); outline-offset:3px; border-radius:6px}
+
+  @media(prefers-reduced-motion:reduce){
+    *,*::before,*::after{animation:none !important; transition:background-color 1.3s ease, color 1.3s ease !important}
+    .panel{animation:none}
+  }
+</style>
+</head>
+<body>
+
+<div class="stage-wrap">
+  <header>
+    <div class="wordmark"><span class="spark" aria-hidden="true"></span> the anxious brain</div>
+    <div class="head-actions">
+      <button class="feel-btn" id="feelOpen">How do you feel?</button>
+      <button class="crisis-btn" id="crisisOpen">In crisis right now?</button>
+    </div>
+  </header>
+
+  <main>
+    <!-- ===== WELCOME (stage 0) ===== -->
+    <section class="panel active" data-stage="0" aria-label="Welcome">
+      <p class="eyebrow">a calm walk-through</p>
+      <h1>Why does it<br>feel like this?</h1>
+      <p class="lede">A gentle journey through what anxiety actually does inside your brain — and how, step by step, you can shift it.</p>
+      <p class="muted" style="margin-top:18px">You're not broken. Your brain is doing its oldest job — keeping you safe — just a little too well. Let's understand it together.</p>
+      <div class="row">
+        <button class="btn" data-go="1">Begin, gently →</button>
+      </div>
+      <p class="fine" style="margin-top:22px">No sign-up. Nothing tracked. Move at your own pace, and stop any time.</p>
+    </section>
+
+    <!-- ===== STAGE 1 — MEET YOUR BRAIN ===== -->
+    <section class="panel" data-stage="1" aria-label="Meet your brain">
+      <p class="eyebrow">Stage one</p>
+      <h2>Meet your brain</h2>
+      <p class="lede">There isn't one "you" in charge up there — there are two systems, and they don't always agree. Tap each part to see what it quietly does for you.</p>
+
+      <div class="brain-stage">
+        <div class="brain-fig" aria-hidden="false">
+          <svg viewBox="0 0 460 380" role="img" aria-label="A friendly hand-drawn brain. Tap a part to learn what it does.">
+            <defs>
+              <filter id="rough" x="-6%" y="-6%" width="112%" height="112%">
+                <feTurbulence type="fractalNoise" baseFrequency="0.016" numOctaves="2" seed="5" result="n"/>
+                <feDisplacementMap in="SourceGraphic" in2="n" scale="2.6"/>
+              </filter>
+            </defs>
+
+            <!-- illustration (hand-drawn wobble); NOT the clickable targets -->
+            <g class="rough">
+              <!-- thinking cortex wash -->
+              <path class="zone-think" d="M104,196 C96,158 114,114 156,96 C182,82 214,84 234,100 C256,84 290,84 312,102 C342,90 372,112 376,158 C384,196 376,224 358,244 C344,266 318,278 286,280 C300,236 252,214 226,236 C210,200 168,200 150,236 C132,250 110,236 104,196 Z"/>
+              <!-- survival / limbic core wash -->
+              <ellipse class="zone-prim" cx="252" cy="246" rx="70" ry="40"/>
+
+              <!-- brain outline -->
+              <path class="stroke" d="M104,196 C96,158 114,114 156,96 C182,82 214,86 234,102 C256,84 290,84 312,102 C342,90 374,112 378,158 C386,198 378,228 358,250 C366,272 356,296 324,302 C300,312 276,304 264,290 C262,308 246,322 232,324 C248,312 252,298 250,282 C224,294 188,296 160,288 C124,290 100,268 100,228 C92,218 94,206 104,196 Z"/>
+              <!-- gyri folds + a central sulcus to read as 'brain' -->
+              <path class="scribble" d="M130,150 C166,130 210,136 240,158"/>
+              <path class="scribble" d="M152,182 C192,162 232,168 260,188"/>
+              <path class="scribble" d="M232,108 C220,148 226,180 244,206"/>
+              <path class="scribble" d="M300,120 C316,142 316,170 300,192"/>
+
+              <!-- zone labels -->
+              <text class="zlabel" x="120" y="120" text-anchor="middle">thinking</text>
+              <text class="zlabel" x="252" y="223" text-anchor="middle" style="opacity:.95">survival</text>
+            </g>
+
+            <!-- nodes: clickable hit-targets, kept OUT of the filter so they stay put -->
+            <g class="node" data-region="pfc" tabindex="0" role="button" aria-label="Prefrontal cortex, the thinking brain">
+              <circle class="halo" cx="138" cy="206" r="14"/>
+              <circle cx="138" cy="206" r="10"/>
+            </g>
+            <g class="node" data-region="amygdala" tabindex="0" role="button" aria-label="Amygdala, the smoke detector">
+              <circle class="halo" cx="224" cy="248" r="14"/>
+              <circle cx="224" cy="248" r="10"/>
+            </g>
+            <g class="node" data-region="hippocampus" tabindex="0" role="button" aria-label="Hippocampus, the memory keeper">
+              <circle class="halo" cx="288" cy="244" r="14"/>
+              <circle cx="288" cy="244" r="10"/>
+            </g>
+            <g class="node" data-region="hypothalamus" tabindex="0" role="button" aria-label="Hypothalamus, the body's control panel">
+              <circle class="halo" cx="256" cy="278" r="14"/>
+              <circle cx="256" cy="278" r="10"/>
+            </g>
+          </svg>
+        </div>
+
+        <div>
+          <div class="chips" role="group" aria-label="Parts of the brain">
+            <button class="chip" data-region="pfc">Thinking brain</button>
+            <button class="chip" data-region="amygdala">Amygdala</button>
+            <button class="chip" data-region="hippocampus">Hippocampus</button>
+            <button class="chip" data-region="hypothalamus">Hypothalamus</button>
+          </div>
+          <div class="info empty" id="info" aria-live="polite">
+            <p>Tap a part of the brain to see what it does — there's no wrong order.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="closing">
+        <p>Notice: none of this is a fault. It's a survival system doing exactly its job — sometimes a little too well. Next, we'll meet the part that sounds the alarm when there's no real danger.</p>
+      </div>
+
+      <div class="row">
+        <button class="btn ghost" data-go="0">← Back</button>
+        <button class="btn" data-go="2">Next: the bear →</button>
+      </div>
+    </section>
+
+    <!-- ===== STAGES 2–6 (placeholders, present so the arc is feelable) ===== -->
+    <section class="panel" data-stage="2" aria-label="The bear">
+      <p class="eyebrow">Stage two</p>
+      <h2>The bear</h2>
+      <p class="lede">Picture it: you round a corner and a bear is on the path. Before you can even think, your heart slams and your body is ready to run. That isn't weakness — that's your amygdala firing in a fraction of a second to keep you alive.</p>
+
+      <div class="bear-stage">
+        <div class="bear-fig" aria-hidden="true">
+          <svg viewBox="0 0 300 200" role="img" aria-label="A calm bear, seen from the side">
+            <g class="rough">
+              <path d="M44,120 C52,112 56,110 62,110 C70,108 74,102 78,96 C80,90 84,86 88,86 C90,78 100,76 104,82 C108,86 110,90 114,94 C120,98 126,92 134,82 C140,72 146,66 156,66 C190,68 222,80 244,92 C258,98 268,108 268,122 C268,140 264,158 262,172 C262,180 262,184 262,184 L234,184 C234,176 236,168 236,160 C230,166 222,170 214,170 C188,174 158,175 130,173 C130,177 129,181 128,184 L102,184 C103,176 104,170 104,166 C92,158 82,150 76,142 C64,138 54,134 48,130 C46,127 45,123 44,120 Z"
+                    fill="#a3886a" stroke="#33414c" stroke-width="2.4" stroke-linejoin="round"/>
+              <path class="scribble" d="M92,84 C95,80 100,80 102,84"/>
+              <ellipse cx="65" cy="107" rx="3" ry="3.8" fill="#33414c"/>
+              <ellipse cx="47" cy="117" rx="4" ry="3.2" fill="#33414c"/>
+              <path class="scribble" d="M48,122 C54,126 61,127 67,125"/>
+              <path class="scribble" d="M156,74 C166,90 170,108 168,128"/>
+              <path class="scribble" d="M246,102 C254,118 254,140 250,160"/>
+            </g>
+          </svg>
+        </div>
+
+        <div>
+          <p class="bear-twist">Here's the catch: your brain can't always tell a <em>real</em> bear from an everyday worry. To the alarm, these can <em>all</em> be the bear.</p>
+          <p class="prompt" style="margin:18px 0 10px">What's your bear, right now?</p>
+          <div class="bear-choices" id="bearChoices" role="group" aria-label="Choose what's worrying you"></div>
+        </div>
+      </div>
+
+      <div class="bear-reveal" id="bearReveal" hidden aria-live="polite"></div>
+
+      <div class="row">
+        <button class="btn ghost" data-go="1">← Back</button>
+        <button class="btn" data-go="3">Next: the loop →</button>
+      </div>
+    </section>
+
+    <section class="panel" data-stage="3" aria-label="The anxiety loop">
+      <div class="placeholder">
+        <div class="num">3</div>
+        <p class="eyebrow" style="margin-top:10px">Stage three</p>
+        <h2>The anxiety loop</h2>
+        <p class="teaser">Spotting the loop of negative thinking that feeds itself — and learning, gently, how to interrupt it.</p>
+        <p class="sketchnote">✎ This part of the journey is still being drawn.</p>
+        <div class="row" style="justify-content:center">
+          <button class="btn ghost" data-go="2">← Back</button>
+          <button class="btn" data-go="4">Next →</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel" data-stage="4" aria-label="Thought versus reality">
+      <div class="placeholder">
+        <div class="num">4</div>
+        <p class="eyebrow" style="margin-top:10px">Stage four</p>
+        <h2>Thought vs reality</h2>
+        <p class="teaser">Why your brain can't always tell a worried thought from something actually happening — so imagined doom lands like real danger.</p>
+        <p class="sketchnote">✎ This part of the journey is still being drawn.</p>
+        <div class="row" style="justify-content:center">
+          <button class="btn ghost" data-go="3">← Back</button>
+          <button class="btn" data-go="5">Next →</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel" data-stage="5" aria-label="The bucket">
+      <div class="placeholder">
+        <div class="num">5</div>
+        <p class="eyebrow" style="margin-top:10px">Stage five</p>
+        <h2>The bucket</h2>
+        <p class="teaser">Your stress bucket: what quietly fills it, and how to make room again so there's space to notice the good.</p>
+        <p class="sketchnote">✎ This part of the journey is still being drawn.</p>
+        <div class="row" style="justify-content:center">
+          <button class="btn ghost" data-go="4">← Back</button>
+          <button class="btn" data-go="6">Next →</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel" data-stage="6" aria-label="Rewarding the brain">
+      <div class="placeholder">
+        <div class="num">6</div>
+        <p class="eyebrow" style="margin-top:10px">Stage six</p>
+        <h2>Rewarding the brain</h2>
+        <p class="teaser">Small, doable ways to fire the brain's feel-good chemistry — your own catalyst for calmer, healthier days.</p>
+        <p class="sketchnote">✎ This part of the journey is still being drawn.</p>
+        <div class="row" style="justify-content:center">
+          <button class="btn ghost" data-go="5">← Back</button>
+          <button class="btn" data-go="0">Start again ↺</button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- ===== progress path ===== -->
+  <nav class="path" id="path" aria-label="Journey progress"></nav>
+</div>
+
+<!-- ===== feelings check-in ===== -->
+<div class="feel-panel" id="feelPanel" role="dialog" aria-modal="true" aria-labelledby="feelTitle">
+  <div class="feel-card">
+    <h3 id="feelTitle">How do you feel, right now?</h3>
+    <p class="sub">Start with the closest big feeling — there's no wrong answer. Then, only if you want to, find the more exact word. Putting a name to it is how your thinking brain steps in and settles the alarm.</p>
+    <div class="wheel-wrap" id="wheelWrap"></div>
+    <div class="drill" id="drill"></div>
+    <div class="feel-actions" id="feelActions" style="display:none">
+      <button class="btn" id="feelReset">Name another ↺</button>
+      <button class="btn ghost" id="feelDone2">Done</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== crisis panel ===== -->
+<div class="crisis-panel" id="crisisPanel" role="dialog" aria-modal="true" aria-labelledby="crisisTitle">
+  <div class="crisis-card">
+    <h3 id="crisisTitle">You deserve support, right now</h3>
+    <p class="muted" style="margin:0 0 8px">If you're in danger or can't keep yourself safe, please reach out — you don't have to do this alone.</p>
+    <!-- Lisa to confirm preferred resources -->
+    <a class="res" href="tel:116123"><strong>Samaritans — 116 123</strong><span>Free, any time, day or night</span></a>
+    <a class="res" href="sms:85258&body=SHOUT"><strong>Shout — text SHOUT to 85258</strong><span>Free 24/7 text support</span></a>
+    <a class="res" href="tel:999"><strong>Emergency — 999</strong><span>If you or someone else is in immediate danger</span></a>
+    <button class="btn close" id="crisisClose">Close</button>
+  </div>
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  var stages = [
+    {n:0, label:"Welcome",            mood:{paper:"#f4eee2", accent:"#7c9a7e", soft:"#cdddc9"}},
+    {n:1, label:"Meet your brain",    mood:{paper:"#eef0ec", accent:"#5b7c99", soft:"#c3d4e0"}},
+    {n:2, label:"The bear",           mood:{paper:"#e9ecec", accent:"#c2814f", soft:"#e7d2bb"}},
+    {n:3, label:"The anxiety loop",   mood:{paper:"#e8eaec", accent:"#6f7e8a", soft:"#cdd5da"}},
+    {n:4, label:"Thought vs reality", mood:{paper:"#ebe9ec", accent:"#7e7088", soft:"#d8cfdd"}},
+    {n:5, label:"The bucket",         mood:{paper:"#f0ece2", accent:"#b07c5b", soft:"#e6d4c0"}},
+    {n:6, label:"Rewarding the brain",mood:{paper:"#f6efdd", accent:"#dba23c", soft:"#f3e1ac"}}
+  ];
+
+  var regions = {
+    pfc:{
+      tag:"the thinking brain · prefrontal cortex",
+      title:"The conscious you",
+      body:"This is the calm, wise part — it reasons, sees perspective, weighs choices and soothes big feelings. It's also the first part to go offline when you're flooded, which is why “just think clearly” feels impossible mid-panic. That's the design, not a failing."
+    },
+    amygdala:{
+      tag:"the smoke detector · amygdala",
+      title:"The alarm",
+      body:"Tiny, lightning-fast, and it only has three settings: fight, flight, freeze. Its job is to keep you alive, so it would rather be wrong a hundred times than miss one real threat. It can't tell a deadline from a predator — it just sounds the alarm."
+    },
+    hippocampus:{
+      tag:"the memory keeper · hippocampus",
+      title:"The librarian",
+      body:"Files your experiences and gives them context — “have I been here before, was it safe?”. Under long stress it gets foggy, which is why your memory and focus wobble when anxiety has been running for a while."
+    },
+    hypothalamus:{
+      tag:"the control panel · hypothalamus",
+      title:"The body switchboard",
+      body:"Flips the physical switches: heart rate, breathing, stress hormones, sleep. When the alarm sounds, this is what tightens your chest and braces your body — long before you've consciously decided anything."
+    }
+  };
+
+  var panels = Array.prototype.slice.call(document.querySelectorAll('.panel'));
+  var info = document.getElementById('info');
+  var current = 0;
+  var reached = 0; // furthest stage reached, for path "done" styling
+
+  /* ---- build progress path ---- */
+  var path = document.getElementById('path');
+  stages.forEach(function(s){
+    var b = document.createElement('button');
+    b.className = 'node-link';
+    b.setAttribute('data-go', s.n);
+    b.setAttribute('aria-label', 'Go to stage ' + (s.n===0?'welcome':s.n) + ': ' + s.label);
+    b.innerHTML = '<span class="dot">'+(s.n===0?'✦':s.n)+'</span><span class="pl">'+s.label+'</span>';
+    path.appendChild(b);
+  });
+
+  function applyMood(i){
+    var m = stages[i].mood;
+    var r = document.documentElement.style;
+    r.setProperty('--paper', m.paper);
+    r.setProperty('--accent', m.accent);
+    r.setProperty('--accent-soft', m.soft);
+  }
+
+  function go(i){
+    i = Math.max(0, Math.min(stages.length-1, i));
+    current = i;
+    if(i>reached) reached = i;
+    panels.forEach(function(p){
+      p.classList.toggle('active', +p.getAttribute('data-stage') === i);
+    });
+    applyMood(i);
+    // path state
+    Array.prototype.forEach.call(path.children, function(el){
+      var s = +el.getAttribute('data-go');
+      el.classList.toggle('current', s===i);
+      el.classList.toggle('done', s < i || (s<=reached && s!==i));
+    });
+    // reset stage-1 selection when leaving
+    if(i!==1){ clearRegion(); }
+    window.scrollTo({top:0, behavior: prefersReduced() ? 'auto':'smooth'});
+  }
+
+  function prefersReduced(){
+    return window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  }
+
+  /* ---- stage 1 region selection ---- */
+  function selectRegion(key){
+    var data = regions[key];
+    if(!data) return;
+    document.querySelectorAll('.node').forEach(function(n){ n.classList.toggle('sel', n.getAttribute('data-region')===key); });
+    document.querySelectorAll('.chip').forEach(function(c){ c.classList.toggle('sel', c.getAttribute('data-region')===key); });
+    info.classList.remove('empty');
+    info.innerHTML = '<span class="tag">'+data.tag+'</span><h3>'+data.title+'</h3><p>'+data.body+'</p>';
+  }
+  function clearRegion(){
+    document.querySelectorAll('.node.sel,.chip.sel').forEach(function(n){ n.classList.remove('sel'); });
+    info.classList.add('empty');
+    info.innerHTML = '<p>Tap a part of the brain to see what it does — there’s no wrong order.</p>';
+  }
+
+  /* ---- events ---- */
+  document.addEventListener('click', function(e){
+    var goEl = e.target.closest('[data-go]');
+    if(goEl){ go(+goEl.getAttribute('data-go')); return; }
+    var regEl = e.target.closest('[data-region]');
+    if(regEl){ selectRegion(regEl.getAttribute('data-region')); return; }
+  });
+  // keyboard on svg nodes
+  document.querySelectorAll('.node').forEach(function(n){
+    n.addEventListener('keydown', function(e){
+      if(e.key==='Enter' || e.key===' '){ e.preventDefault(); selectRegion(n.getAttribute('data-region')); }
+    });
+  });
+
+  // crisis panel
+  var cp = document.getElementById('crisisPanel');
+  document.getElementById('crisisOpen').addEventListener('click', function(){ cp.classList.add('open'); });
+  document.getElementById('crisisClose').addEventListener('click', function(){ cp.classList.remove('open'); });
+  cp.addEventListener('click', function(e){ if(e.target===cp) cp.classList.remove('open'); });
+  document.addEventListener('keydown', function(e){ if(e.key==='Escape') cp.classList.remove('open'); });
+
+  go(0);
+})();
+</script>
+
+<script>
+/* ===== feelings check-in: progressive emotion wheel ===== */
+(function(){
+  "use strict";
+  // Clockwise from top, mirroring the classic feelings wheel layout.
+  var WHEEL = [
+    {core:"Anger",   color:"#d98c84", sec:{
+      "Hurt":["Devastated","Embarrassed"], "Threatened":["Jealous","Insecure"],
+      "Hateful":["Resentful","Violated"],  "Mad":["Furious","Enraged"],
+      "Aggressive":["Provoked","Hostile"], "Frustrated":["Infuriated","Irritated"],
+      "Distant":["Withdrawn","Suspicious"],"Critical":["Sceptical","Sarcastic"]}},
+    {core:"Disgust", color:"#b9a8d6", sec:{
+      "Disapproval":["Judgmental","Loathing"], "Disappointed":["Repugnant","Revolted"],
+      "Awful":["Detestable","Nauseated"],      "Avoidance":["Aversion","Hesitant"]}},
+    {core:"Sad",     color:"#8fb3d9", sec:{
+      "Guilty":["Remorseful","Ashamed"],  "Abandoned":["Ignored","Isolated"],
+      "Despair":["Powerless","Vulnerable"],"Depressed":["Inferior","Empty"],
+      "Lonely":["Abandoned","Withdrawn"], "Bored":["Apathetic","Indifferent"]}},
+    {core:"Happy",   color:"#ecd27a", sec:{
+      "Optimistic":["Inspired","Hopeful"], "Intimate":["Sensitive","Loving"],
+      "Peaceful":["Playful","Open"],       "Powerful":["Courageous","Confident"],
+      "Accepted":["Respected","Fulfilled"],"Proud":["Important","Worthy"],
+      "Interested":["Amused","Curious"],   "Joyful":["Ecstatic","Liberated"]}},
+    {core:"Surprise",color:"#8fd0cf", sec:{
+      "Startled":["Shocked","Dismayed"],     "Confused":["Disillusioned","Perplexed"],
+      "Amazed":["Astonished","Awe"],         "Excited":["Eager","Energetic"]}},
+    {core:"Fear",    color:"#93c4a0", sec:{
+      "Scared":["Frightened","Terrified"],  "Anxious":["Overwhelmed","Worried"],
+      "Insecure":["Inadequate","Inferior"], "Submissive":["Worthless","Insignificant"],
+      "Rejected":["Alienated","Excluded"],  "Humiliated":["Disrespected","Ridiculed"]}}
+  ];
+
+  var CX=170, CY=170, RO=160, RI=80, N=WHEEL.length, SLICE=360/N;
+  var SVGNS="http://www.w3.org/2000/svg";
+  var wrap=document.getElementById("wheelWrap");
+  var drill=document.getElementById("drill");
+  var actions=document.getElementById("feelActions");
+  var panel=document.getElementById("feelPanel");
+
+  function pt(cx,cy,r,deg){var a=(deg-90)*Math.PI/180; return [cx+r*Math.cos(a), cy+r*Math.sin(a)];}
+  function wedgePath(start,end){
+    var a=pt(CX,CY,RO,start), b=pt(CX,CY,RO,end), c=pt(CX,CY,RI,end), d=pt(CX,CY,RI,start);
+    return "M"+a[0].toFixed(1)+","+a[1].toFixed(1)+
+           " A"+RO+","+RO+" 0 0 1 "+b[0].toFixed(1)+","+b[1].toFixed(1)+
+           " L"+c[0].toFixed(1)+","+c[1].toFixed(1)+
+           " A"+RI+","+RI+" 0 0 0 "+d[0].toFixed(1)+","+d[1].toFixed(1)+" Z";
+  }
+  function el(tag,attrs,txt){var e=document.createElementNS(SVGNS,tag);for(var k in attrs)e.setAttribute(k,attrs[k]);if(txt!=null)e.textContent=txt;return e;}
+
+  function buildWheel(){
+    var svg=el("svg",{viewBox:"0 0 340 340",role:"group","aria-label":"Wheel of feelings"});
+    WHEEL.forEach(function(item,i){
+      var start=i*SLICE, end=start+SLICE, mid=start+SLICE/2;
+      var g=el("g",{class:"wedge",tabindex:"0",role:"button","aria-label":item.core,"data-core":item.core});
+      g.appendChild(el("path",{d:wedgePath(start,end),fill:item.color}));
+      var lp=pt(CX,CY,(RO+RI)/2,mid);
+      g.appendChild(el("text",{class:"wlabel",x:lp[0].toFixed(1),y:lp[1].toFixed(1)},item.core));
+      g.addEventListener("click",function(){chooseCore(item.core);});
+      g.addEventListener("keydown",function(e){if(e.key==="Enter"||e.key===" "){e.preventDefault();chooseCore(item.core);}});
+      svg.appendChild(g);
+    });
+    svg.appendChild(el("text",{class:"hub",x:CX,y:CY-8},"tap a"));
+    svg.appendChild(el("text",{class:"hub",x:CX,y:CY+12},"feeling"));
+    wrap.appendChild(svg);
+  }
+
+  var state={core:null,sec:null};
+
+  function markSel(core){
+    wrap.classList.toggle("has-sel",!!core);
+    wrap.querySelectorAll(".wedge").forEach(function(w){
+      w.classList.toggle("sel", w.getAttribute("data-core")===core);
+    });
+  }
+  function crumbs(){
+    var html='<button data-lvl="0">Feelings</button>';
+    if(state.core) html+=' <span class="sep">›</span> <button data-lvl="1">'+state.core+'</button>';
+    if(state.sec)  html+=' <span class="sep">›</span> <button data-lvl="2">'+state.sec+'</button>';
+    return html;
+  }
+  function chips(list,tier,onPick){
+    var box=document.createElement("div"); box.className="wordchips";
+    list.forEach(function(w){
+      var b=document.createElement("button");
+      b.className="wordchip"+(tier===3?" tier3":""); b.textContent=w;
+      b.addEventListener("click",function(){onPick(w);});
+      box.appendChild(b);
+    });
+    return box;
+  }
+
+  function chooseCore(core){
+    state.core=core; state.sec=null; markSel(core); actions.style.display="none";
+    var item=WHEEL.find(function(x){return x.core===core;});
+    drill.innerHTML='<div class="crumbs">'+crumbs()+'</div><p class="prompt">You’re near <strong>'+core+'</strong>. Which is closest?</p>';
+    drill.appendChild(chips(Object.keys(item.sec),2,chooseSec));
+    bindCrumbs();
+  }
+  function chooseSec(sec){
+    state.sec=sec;
+    var item=WHEEL.find(function(x){return x.core===state.core;});
+    drill.innerHTML='<div class="crumbs">'+crumbs()+'</div><p class="prompt">…and more precisely? <span style="font-weight:400;color:var(--ink-soft)">(or stop here — '+sec+' is enough)</span></p>';
+    drill.appendChild(chips(item.sec[sec],3,land));
+    var stop=document.createElement("button"); stop.className="wordchip"; stop.style.borderColor="var(--accent)"; stop.textContent='“'+sec+'” fits';
+    stop.addEventListener("click",function(){land(sec);}); drill.querySelector(".wordchips").appendChild(stop);
+    bindCrumbs();
+  }
+  function land(word){
+    actions.style.display="flex";
+    drill.innerHTML='<div class="crumbs">'+crumbs()+'</div>'+
+      '<div class="reflection"><p class="big">'+word+'</p>'+
+      '<p>You’re feeling <strong>'+word+'</strong> — in the '+state.core+' family. That’s allowed; nothing here is wrong to feel. '+
+      'Naming it this exactly is the quiet superpower — putting one precise word to a feeling is your thinking brain stepping in to settle the alarm. That’s the shift, already starting.</p></div>';
+    bindCrumbs();
+  }
+  function bindCrumbs(){
+    drill.querySelectorAll(".crumbs button").forEach(function(b){
+      b.addEventListener("click",function(){
+        var lvl=+b.getAttribute("data-lvl");
+        if(lvl===0) reset();
+        else if(lvl===1) chooseCore(state.core);
+        else if(lvl===2) chooseSec(state.sec);
+      });
+    });
+  }
+  function reset(){
+    state={core:null,sec:null}; markSel(null); actions.style.display="none";
+    drill.innerHTML='';
+  }
+
+  buildWheel();
+
+  // open / close
+  document.getElementById("feelOpen").addEventListener("click",function(){panel.classList.add("open");});
+  document.getElementById("feelDone2").addEventListener("click",function(){panel.classList.remove("open");});
+  document.getElementById("feelReset").addEventListener("click",reset);
+  panel.addEventListener("click",function(e){if(e.target===panel)panel.classList.remove("open");});
+  document.addEventListener("keydown",function(e){if(e.key==="Escape")panel.classList.remove("open");});
+})();
+</script>
+
+<script>
+/* ===== stage 2: choose your bear ===== */
+(function(){
+  "use strict";
+  var bears=[
+    {em:"📩", label:"An unread message", note:"A few unread words can’t hurt you — yet your brain braced for confrontation all the same."},
+    {em:"⏰", label:"A deadline",         note:"Time pressure isn’t a predator, but your body geared up as if you had to outrun one."},
+    {em:"👥", label:"A social plan",      note:"Other people aren’t a threat — yet to an alarm built for survival, being judged can feel like life or death."},
+    {em:"🩺", label:"A health worry",     note:"Uncertainty about your body sets off the loudest alarm of all, with no danger in front of you."},
+    {em:"💷", label:"Money",              note:"Numbers on a screen triggered a fight-or-flight surge meant for real, physical danger."},
+    {em:"❓", label:"The what-ifs",       note:"Your brain conjured a bear out of a ‘maybe’, then reacted as if it were already here."}
+  ];
+  var swMsg={
+    fight:"Fight isn’t aggression — it’s your body trying to protect you.",
+    flight:"Flight isn’t weakness — it’s an old instinct to get you to safety.",
+    freeze:"Freeze isn’t failure — it’s the oldest survival setting there is."
+  };
+  var choices=document.getElementById("bearChoices");
+  var reveal=document.getElementById("bearReveal");
+  if(!choices) return;
+
+  function lower(s){return s.charAt(0).toLowerCase()+s.slice(1);}
+  function reduced(){return window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;}
+
+  bears.forEach(function(b){
+    var btn=document.createElement("button");
+    btn.className="bear-card";
+    btn.innerHTML='<span class="em" aria-hidden="true">'+b.em+'</span>'+b.label;
+    btn.addEventListener("click",function(){ pick(b,btn); });
+    choices.appendChild(btn);
+  });
+
+  function pick(b,btn){
+    choices.querySelectorAll(".bear-card").forEach(function(c){ c.classList.toggle("sel", c===btn); });
+    reveal.hidden=false;
+    reveal.innerHTML=
+      '<h3>There’s no bear. There’s '+lower(b.label)+'.</h3>'+
+      '<p>To your amygdala — the smoke detector from Stage 1 — '+lower(b.label)+' can look exactly like a predator. In a heartbeat it flips one of three ancient switches. Which feels most like you?</p>'+
+      '<div class="switches">'+
+        sw("fight","💢","Fight","snap, argue, get defensive")+
+        sw("flight","🏃","Flight","avoid, escape, stay busy")+
+        sw("freeze","🧊","Freeze","go blank, stall, shut down")+
+      '</div>'+
+      '<p class="sw-msg" id="swMsg"></p>'+
+      '<p class="bear-note">'+b.note+' It feels urgent because the <strong>alarm is loud</strong> — not because you’re in danger. Seeing the bear for what it really is, is how you begin to turn the volume down.</p>';
+    reveal.querySelectorAll(".switch").forEach(function(s){
+      s.addEventListener("click",function(){
+        reveal.querySelectorAll(".switch").forEach(function(x){ x.classList.toggle("sel", x===s); });
+        document.getElementById("swMsg").textContent=swMsg[s.getAttribute("data-sw")];
+      });
+    });
+    if(!reduced()) reveal.scrollIntoView({behavior:"smooth", block:"nearest"});
+  }
+  function sw(id,em,name,desc){
+    return '<button class="switch" data-sw="'+id+'"><span class="sw-em" aria-hidden="true">'+em+'</span>'+
+           '<span class="sw-name">'+name+'</span><div class="sw-desc">'+desc+'</div></button>';
+  }
+})();
+</script>
+</body>
+</html>

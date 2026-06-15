@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Layered Emotion Model</title>
+<style>
+  /* ---- theme (flat, calm, dark-mode-ready; no gradients/shadows/glow) ---- */
+  :root{
+    --bg:#f5efe2; --surface:#fbf7ee; --line:#e2d8c4;
+    --ink:#33372e; --ink-soft:#6c715f; --ink-faint:#9a9c89;
+    --focus:#3a6ea5;
+    /* emotion families — one hue per family; we vary opacity, never gradients */
+    --joy:#d39a1f; --sad:#3f6fb8; --fear:#7b5ea7; --anger:#d6573f;
+    --disgust:#4f9152; --surprise:#cc5f99; --seeking:#2f9e6b; --care:#2f9a9a;
+    --radius:14px; --maxw:860px;
+    --font:"Atkinson Hyperlegible",system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{ --bg:#15171a; --surface:#1f2227; --line:#33373e;
+           --ink:#e8e6df; --ink-soft:#a9ada3; --ink-faint:#7d8178; --focus:#7fb0e0;
+           /* lift hues slightly for contrast on near-black */
+           --joy:#e6b643; --sad:#6f9be0; --fear:#a98ed0; --anger:#ec7a64;
+           --disgust:#73b876; --surprise:#e084b8; --seeking:#54c08f; --care:#54c0c0; }
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{margin:0; background:var(--bg); color:var(--ink); font-family:var(--font);
+    line-height:1.55; font-size:17px}
+  @media (prefers-reduced-motion: reduce){ html{scroll-behavior:auto} }
+  .wrap{max-width:var(--maxw); margin:0 auto; padding:0 18px 80px}
+  a{color:var(--focus)}
+  :focus-visible{outline:3px solid var(--focus); outline-offset:2px; border-radius:6px}
+
+  header{padding:30px 0 10px; text-align:center}
+  h1{font-size:1.7rem; margin:0 0 4px; font-weight:800; letter-spacing:-.01em}
+  .tagline{color:var(--ink-soft); max-width:54ch; margin:0 auto; font-size:1.02rem}
+  .tagline b{color:var(--ink)}
+
+  /* ---- tabs ---- */
+  .tabs{position:sticky; top:0; z-index:10; background:var(--bg);
+    display:flex; gap:6px; flex-wrap:wrap; justify-content:center; padding:14px 0 12px;
+    border-bottom:1px solid var(--line); margin-bottom:8px}
+  .tab{font-family:inherit; font-size:.92rem; font-weight:700; cursor:pointer;
+    background:var(--surface); color:var(--ink); border:1.5px solid var(--line);
+    border-radius:999px; padding:8px 14px; display:flex; align-items:center; gap:7px;
+    transition:border-color .15s, background .15s}
+  .tab:hover{border-color:var(--ink-faint)}
+  .tab[aria-selected="true"]{background:var(--ink); color:var(--bg); border-color:var(--ink)}
+  .tab .n{font-size:.78rem; opacity:.7}
+
+  .panel{display:none; padding:14px 0 0}
+  .panel.active{display:block}
+  .panel > h2{font-size:1.3rem; margin:.2em 0 .1em}
+  .panel > .sub{color:var(--ink-soft); margin:0 0 18px; max-width:60ch}
+
+  .sr-only{position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden;
+    clip:rect(0,0,0,0); white-space:nowrap; border:0}
+
+  /* ---- cards / grid ---- */
+  .grid{display:grid; gap:12px}
+  .grid.two{grid-template-columns:repeat(auto-fit,minmax(230px,1fr))}
+  .card{background:var(--surface); border:1.5px solid var(--line); border-radius:var(--radius);
+    padding:15px 16px}
+  .card h3{margin:0 0 2px; font-size:1.05rem; display:flex; align-items:center; gap:8px}
+  .card .meta{color:var(--ink-soft); font-size:.9rem; margin:2px 0}
+  .card .felt{margin-top:8px; font-size:.95rem}
+  .dot{width:13px; height:13px; border-radius:50%; flex:none; border:2px solid currentColor}
+  .chip{display:inline-block; font-size:.8rem; font-weight:700; padding:3px 9px;
+    border-radius:999px; border:1.5px solid currentColor; margin:2px 4px 2px 0}
+  .note{background:var(--surface); border:1.5px dashed var(--line); border-radius:var(--radius);
+    padding:13px 16px; margin-top:14px; font-size:.92rem; color:var(--ink-soft)}
+  .note b{color:var(--ink)}
+  .caps{font-variant:small-caps; letter-spacing:.04em}
+
+  /* ---- Layer 2: onset track ---- */
+  .track{position:relative; border:1.5px solid var(--line); border-radius:var(--radius);
+    background:var(--surface); padding:26px 16px 18px; margin-top:6px}
+  .track .divider{position:absolute; top:8px; bottom:8px; left:38%; border-left:2px dashed var(--ink-faint)}
+  .track .divlabel{position:absolute; top:6px; left:38%; transform:translateX(8px);
+    font-size:.74rem; color:var(--ink-faint); max-width:42%}
+  .track .row{display:flex; align-items:center; gap:8px; margin:8px 0; flex-wrap:wrap}
+  .track .rl{width:72px; flex:none; font-size:.78rem; color:var(--ink-soft); font-weight:700; text-align:right}
+  .track .e{font-size:.82rem; font-weight:700; padding:4px 9px; border-radius:999px;
+    border:1.5px solid currentColor}
+  .scale{display:flex; justify-content:space-between; font-size:.72rem; color:var(--ink-faint); margin-top:6px}
+
+  /* ---- Layer 3: cores ---- */
+  .cores{display:grid; grid-template-columns:repeat(auto-fit,minmax(110px,1fr)); gap:10px}
+  .core-btn{font-family:inherit; cursor:pointer; background:var(--surface);
+    border:2px solid var(--line); border-radius:var(--radius); padding:14px 8px; text-align:center;
+    font-weight:800; font-size:1rem; color:var(--ink); transition:border-color .15s, transform .15s}
+  .core-btn:hover{transform:translateY(-2px)}
+  .core-btn[aria-pressed="true"]{border-color:currentColor}
+  .core-btn .ico{font-size:1.5rem; display:block; line-height:1; margin-bottom:5px}
+  .detail{margin-top:16px; border:1.5px solid var(--line); border-radius:var(--radius);
+    background:var(--surface); padding:16px; display:grid; grid-template-columns:120px 1fr; gap:18px}
+  @media(max-width:520px){.detail{grid-template-columns:1fr}}
+  .body-map{width:120px; height:230px; margin:0 auto}
+  .arousal{height:9px; background:var(--line); border-radius:999px; overflow:hidden; margin:6px 0 2px}
+  .arousal > span{display:block; height:100%; border-radius:999px; background:currentColor}
+
+  /* ---- Layer 4: pairs ---- */
+  .pair{border:1.5px solid var(--line); border-radius:var(--radius); background:var(--surface);
+    padding:14px 16px; margin-bottom:10px}
+  .pair h3{margin:0 0 8px; font-size:1.05rem}
+  .pair .vs{display:grid; grid-template-columns:1fr 1fr; gap:12px}
+  @media(max-width:520px){.pair .vs{grid-template-columns:1fr}}
+  .pair .side{border-left:3px solid currentColor; padding-left:10px}
+  .pair .side b{display:block}
+  .pair .fn{margin-top:8px; font-size:.88rem; color:var(--ink-soft)}
+
+  /* ---- Layer 5: weather ---- */
+  .weather{display:grid; grid-template-columns:repeat(auto-fit,minmax(240px,1fr)); gap:14px}
+  .wcard{border:1.5px solid var(--line); border-radius:var(--radius); background:var(--surface);
+    overflow:hidden}
+  .sky{height:120px; position:relative; overflow:hidden}
+  .wbody{padding:13px 15px}
+  .wbody h3{margin:0 0 2px; font-size:1.05rem; display:flex; align-items:center; gap:8px}
+  .wbody .int{font-size:.78rem; color:var(--ink-faint); font-weight:700; text-transform:uppercase; letter-spacing:.04em}
+  .wbody .passes{margin-top:7px; font-size:.92rem; font-style:italic; color:var(--ink-soft)}
+  /* slow, soft weather (3–8s); no flashing */
+  @keyframes drift{0%{transform:translateX(-12%)}50%{transform:translateX(12%)}100%{transform:translateX(-12%)}}
+  @keyframes breathe{0%,100%{opacity:.55}50%{opacity:.9}}
+  @keyframes fall{0%{transform:translateY(-30px)}100%{transform:translateY(140px)}}
+  .sun{position:absolute; inset:0}
+  .sun .orb{position:absolute; left:50%; top:50%; width:64px; height:64px; margin:-32px 0 0 -32px;
+    border-radius:50%; background:var(--joy); animation:breathe 6s ease-in-out infinite}
+  .cloud{position:absolute; width:90px; height:30px; border-radius:999px; background:var(--ink-faint);
+    opacity:.5; animation:drift 8s ease-in-out infinite}
+  .rain i,.cold i{position:absolute; width:2px; height:16px; background:var(--sad); opacity:.6;
+    animation:fall 1.8s linear infinite}
+  .cold i{background:var(--fear); transform:rotate(18deg)}
+  .fog{position:absolute; inset:0; background:var(--disgust); opacity:.25; animation:drift 7s ease-in-out infinite}
+  .storm{position:absolute; inset:0; background:var(--anger); opacity:.28; animation:breathe 5s ease-in-out infinite}
+  .flash{position:absolute; inset:0; background:var(--surprise); opacity:.3; animation:breathe 4s ease-in-out infinite}
+  @media (prefers-reduced-motion: reduce){
+    .sun .orb,.cloud,.rain i,.cold i,.fog,.storm,.flash{animation:none !important}
+  }
+
+  footer{margin-top:30px; padding-top:14px; border-top:1px solid var(--line);
+    color:var(--ink-faint); font-size:.82rem; text-align:center}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>The layered emotion model</h1>
+    <p class="tagline"><b>Feelings are weather, not climate</b> — they roll in, move through, and pass. You are the sky, not the storm. Five layers, from the brain's wiring up to the felt experience. Tap to explore; take what's useful.</p>
+  </header>
+
+  <div class="tabs" role="tablist" aria-label="Emotion model layers" id="tabs"></div>
+
+  <main id="panels"></main>
+
+  <footer>
+    A calm, validating tour of how emotions work — not a diagnosis. Built from Lisa's layered-emotion brief
+    (Panksepp · Ekman · core emotions &amp; body maps · granular pairs · emotions-as-weather).
+  </footer>
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  /* ================= DATA (from the brief §4 — edit here, layout follows) ================= */
+  var COLORS = { joy:'--joy', sad:'--sad', fear:'--fear', anger:'--anger',
+                 disgust:'--disgust', surprise:'--surprise', seeking:'--seeking', care:'--care' };
+  function hue(fam){ return 'var('+COLORS[fam]+')'; }
+
+  var PANKSEPP = [
+    {sys:'SEEKING', fam:'seeking', circuit:'Nucleus accumbens, VTA, hypothalamus', chem:'Dopamine',
+     fn:'Motivates exploration and reward pursuit', felt:'Curiosity, anticipation, drive to achieve'},
+    {sys:'RAGE', fam:'anger', circuit:'Amygdala, hypothalamus, PAG', chem:'Substance P, glutamate',
+     fn:'Responds to restraint or threat', felt:'Anger when blocked or treated unfairly'},
+    {sys:'FEAR', fam:'fear', circuit:'Amygdala, hippocampus, PAG', chem:'CRF, glutamate',
+     fn:'Avoidance of danger', felt:'Anxiety, freezing, fleeing'},
+    {sys:'LUST', fam:'surprise', circuit:'Hypothalamus, amygdala', chem:'Testosterone, estrogen',
+     fn:'Reproductive behavior', felt:'Sexual desire and attraction'},
+    {sys:'CARE', fam:'care', circuit:'Anterior cingulate, hypothalamus', chem:'Oxytocin, prolactin',
+     fn:'Nurturing and bonding', felt:'Parental love, tenderness'},
+    {sys:'GRIEF / PANIC', fam:'sad', circuit:'Anterior cingulate, PAG, thalamus', chem:'Opioids, oxytocin',
+     fn:'Maintains social bonds', felt:'Separation distress, loneliness'},
+    {sys:'PLAY', fam:'joy', circuit:'Dorsomedial thalamus, PAG', chem:'Opioids, endocannabinoids',
+     fn:'Social skill development', felt:'Joy in games, laughter, roughhousing'}
+  ];
+
+  var EKMAN = {
+    basic:{ label:'Basic / pure', examples:['Fear','Joy','Anger','Sadness','Disgust','Surprise'],
+      origin:'Amygdala, hypothalamus, brainstem', cross:'Yes — all studied cultures',
+      onset:'Very fast (under 300ms)', appraisal:'No' },
+    complex:{ label:'Complex / secondary', examples:['Guilt','Envy','Nostalgia','Shame','Pride'],
+      origin:'Prefrontal cortex, anterior cingulate', cross:'No — varies by culture',
+      onset:'Slower — seconds to minutes', appraisal:'Yes' }
+  };
+
+  // body regions for a simple silhouette highlight
+  var CORES = [
+    {core:'Joy', fam:'joy', ico:'☀️', arousal:90, regions:['full'],
+     sens:'Warmth, lightness, energy, tingling', region:'Full body (rare whole-body activation)', pair:'Contentment vs Joy'},
+    {core:'Sadness', fam:'sad', ico:'🌧️', arousal:25, regions:['chest','throat','limbs'],
+     sens:'Heaviness, tightness, fatigue, throat constriction', region:'Chest, throat, limbs', pair:'Grief vs Depression'},
+    {core:'Fear', fam:'fear', ico:'🌬️', arousal:85, regions:['chest','limbs','gut'],
+     sens:'Chills, muscle tension, racing heart, shallow breath', region:'Chest, limbs, gut', pair:'Anxiety vs Excitement'},
+    {core:'Anger', fam:'anger', ico:'⛈️', arousal:88, regions:['face','hands','chest'],
+     sens:'Heat, pressure, tension, jaw clenching', region:'Face, hands, chest', pair:'Frustration vs Anger'},
+    {core:'Disgust', fam:'disgust', ico:'🌫️', arousal:55, regions:['gut','throat','face'],
+     sens:'Nausea, constriction, facial tension', region:'Gut, throat, face', pair:'(self-directed: shame/guilt — see Telling them apart)'},
+    {core:'Surprise', fam:'surprise', ico:'⚡', arousal:97, regions:['face','chest'],
+     sens:'Sudden alertness, widening sensation, brief freeze', region:'Face, chest', pair:'No pair — resolves into other feelings'}
+  ];
+
+  var PAIRS = [
+    {name:'Anxiety vs Excitement', fam:'fear', a:{t:'Anxiety', b:'Constriction'}, c:{t:'Excitement', b:'Expansiveness'},
+     trigger:'Uncertain threat vs anticipated positive outcome', fn:'Prepare for danger vs mobilise for opportunity', layer:'Secondary'},
+    {name:'Guilt vs Shame', fam:'disgust', a:{t:'Guilt', b:'Stomach drop, restlessness'}, c:{t:'Shame', b:'Full-body heat, collapse urge'},
+     trigger:'Specific action vs perceived self-worth failure', fn:'Motivate repair vs signal social threat', layer:'Tertiary (complex / self-conscious — parked on Disgust, honestly labelled)'},
+    {name:'Grief vs Depression', fam:'sad', a:{t:'Grief', b:'Waves, chest tightness'}, c:{t:'Depression', b:'Flat, diffuse numbness'},
+     trigger:'Loss event vs sustained low mood', fn:'Process loss vs signal system shutdown', layer:'Secondary / Tertiary'},
+    {name:'Frustration vs Anger', fam:'anger', a:{t:'Frustration', b:'Pressure without release'}, c:{t:'Anger', b:'Heat, energy surge'},
+     trigger:'Blocked goal vs perceived injustice', fn:'Signal obstacle vs mobilise defence', layer:'Secondary'},
+    {name:'Contentment vs Joy', fam:'joy', a:{t:'Contentment', b:'Still warmth'}, c:{t:'Joy', b:'Expansive energy'},
+     trigger:'Safety and satisfaction vs positive surprise', fn:'Sustain well-being vs approach reward', layer:'Tertiary / Core'}
+  ];
+
+  var WEATHER = [
+    {core:'Joy', fam:'joy', kind:'sun', label:'Bright, open sky', intensity:'High',
+     passes:'Even sunshine is in motion; clouds drift across and back.'},
+    {core:'Surprise', fam:'surprise', kind:'flash', label:'A sudden flash', intensity:'Very high (brief)',
+     passes:'The briefest weather — a flash, then gone, handing you to whatever’s next.'},
+    {core:'Fear', fam:'fear', kind:'cold', label:'A cold front', intensity:'High',
+     passes:'A cold gust moves through fast; it’s loud but already leaving.'},
+    {core:'Anger', fam:'anger', kind:'storm', label:'A thunderhead', intensity:'High',
+     passes:'Storms burn hot then blow over.'},
+    {core:'Disgust', fam:'disgust', kind:'fog', label:'Drifting fog', intensity:'Moderate',
+     passes:'Fog clouds the view, then lifts.'},
+    {core:'Sadness', fam:'sad', kind:'rain', label:'Steady rain', intensity:'Low',
+     passes:'Rain is heavy to stand in, and it passes — and it waters things.'}
+  ];
+
+  /* ================= LAYERS / TABS ================= */
+  var LAYERS = [
+    {id:'wiring',  n:'1', label:'The wiring',        render:renderPanksepp},
+    {id:'speed',   n:'2', label:'Fast & slow',       render:renderEkman},
+    {id:'cores',   n:'3', label:'Six cores',         render:renderCores},
+    {id:'pairs',   n:'4', label:'Telling apart',     render:renderPairs},
+    {id:'weather', n:'5', label:'Weather',           render:renderWeather}
+  ];
+
+  var tabsEl = document.getElementById('tabs');
+  var panelsEl = document.getElementById('panels');
+
+  function esc(s){ return String(s).replace(/[&<>]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;'}[c];}); }
+
+  /* ---------- Layer 1 ---------- */
+  function renderPanksepp(p){
+    p.innerHTML =
+      '<h2>The wiring — seven primary systems</h2>'+
+      '<p class="sub">Beneath every feeling sit a handful of ancient brain circuits (Jaak Panksepp). They’re written in '+
+      '<span class="caps">small caps</span> to mark them as raw neural systems, not learned feelings.</p>'+
+      '<div class="grid two">'+
+      PANKSEPP.map(function(s){
+        return '<div class="card" style="color:'+hue(s.fam)+'">'+
+          '<h3 style="color:var(--ink)"><span class="dot" style="color:'+hue(s.fam)+'"></span><span class="caps">'+esc(s.sys)+'</span></h3>'+
+          '<p class="meta"><b>Circuit:</b> '+esc(s.circuit)+'</p>'+
+          '<p class="meta"><b>Chemistry:</b> '+esc(s.chem)+'</p>'+
+          '<p class="meta"><b>Does:</b> '+esc(s.fn)+'</p>'+
+          '<p class="felt" style="color:var(--ink)">Felt as — '+esc(s.felt)+'</p>'+
+        '</div>';
+      }).join('')+
+      '</div>'+
+      '<div class="note"><b>Worth noticing:</b> <span class="caps">care</span> and <span class="caps">grief/panic</span> both run on <b>oxytocin</b> — the system that builds bonds is the same one that aches when they’re lost. And <span class="caps">play</span> and <span class="caps">grief/panic</span> share <b>opioids</b>. The wiring for closeness and for loss is deeply entwined.</div>';
+  }
+
+  /* ---------- Layer 2 ---------- */
+  function renderEkman(p){
+    function row(rl, key){
+      var d=EKMAN[key], col = key==='basic' ? hue('fear') : hue('care');
+      return '<div class="row"><span class="rl">'+rl+'</span>'+
+        d.examples.map(function(e){return '<span class="e" style="color:'+col+'">'+esc(e)+'</span>';}).join('')+
+        '</div>';
+    }
+    p.innerHTML =
+      '<h2>Fast &amp; slow — basic vs complex</h2>'+
+      '<p class="sub">Some feelings fire before thought; others need the thinking brain to appraise a situation first. Roughly where they land on the clock:</p>'+
+      '<div class="track">'+
+        '<div class="divider"></div>'+
+        '<div class="divlabel">← the thinking brain kicks in</div>'+
+        row('Basic','basic')+
+        row('Complex','complex')+
+        '<div class="scale"><span>0ms</span><span>300ms</span><span>seconds</span><span>minutes</span></div>'+
+      '</div>'+
+      '<div class="grid two" style="margin-top:14px">'+
+        ['basic','complex'].map(function(key){
+          var d=EKMAN[key];
+          return '<div class="card"><h3 style="color:var(--ink)">'+esc(d.label)+'</h3>'+
+            '<p class="meta"><b>Origin:</b> '+esc(d.origin)+'</p>'+
+            '<p class="meta"><b>Cross-cultural:</b> '+esc(d.cross)+'</p>'+
+            '<p class="meta"><b>Onset:</b> '+esc(d.onset)+'</p>'+
+            '<p class="meta"><b>Needs appraisal:</b> '+esc(d.appraisal)+'</p></div>';
+        }).join('')+
+      '</div>';
+  }
+
+  /* ---------- Layer 3 ---------- */
+  function bodySVG(regions, col){
+    function on(r){ return regions.indexOf(r)>-1 || regions.indexOf('full')>-1; }
+    function fill(r){ return on(r) ? col : 'var(--line)'; }
+    return '<svg class="body-map" viewBox="0 0 120 230" role="img" aria-label="Where it’s felt in the body">'+
+      '<circle cx="60" cy="26" r="18" fill="'+fill('face')+'"/>'+          /* head/face */
+      '<rect x="54" y="44" width="12" height="14" rx="4" fill="'+fill('throat')+'"/>'+ /* throat */
+      '<rect x="40" y="58" width="40" height="52" rx="12" fill="'+fill('chest')+'"/>'+ /* chest */
+      '<rect x="44" y="108" width="32" height="34" rx="10" fill="'+fill('gut')+'"/>'+  /* gut */
+      '<rect x="22" y="62" width="14" height="60" rx="7" fill="'+fill('hands')+'"/>'+  /* L arm */
+      '<rect x="84" y="62" width="14" height="60" rx="7" fill="'+fill('hands')+'"/>'+  /* R arm */
+      '<rect x="46" y="142" width="12" height="74" rx="6" fill="'+fill('limbs')+'"/>'+ /* L leg */
+      '<rect x="62" y="142" width="12" height="74" rx="6" fill="'+fill('limbs')+'"/>'+ /* R leg */
+    '</svg>';
+  }
+  function renderCores(p){
+    p.innerHTML =
+      '<h2>Six cores — felt in the body</h2>'+
+      '<p class="sub">Six emotions most cultures share, each with its own body signature and energy level. Tap one to feel where it lives.</p>'+
+      '<div class="cores" id="coreBtns"></div>'+
+      '<div id="coreDetail" aria-live="polite"></div>';
+    var btns = p.querySelector('#coreBtns');
+    CORES.forEach(function(c,i){
+      var b=document.createElement('button');
+      b.className='core-btn'; b.type='button'; b.style.color=hue(c.fam);
+      b.setAttribute('aria-pressed','false');
+      b.innerHTML='<span class="ico" aria-hidden="true">'+c.ico+'</span><span style="color:var(--ink)">'+esc(c.core)+'</span>';
+      b.addEventListener('click',function(){ showCore(p,i); });
+      btns.appendChild(b);
+    });
+    showCore(p,0);
+  }
+  function showCore(p,i){
+    var c=CORES[i], col=hue(c.fam);
+    p.querySelectorAll('.core-btn').forEach(function(b,j){ b.setAttribute('aria-pressed', j===i?'true':'false'); });
+    p.querySelector('#coreDetail').innerHTML =
+      '<div class="detail" style="color:'+col+'">'+
+        '<div>'+bodySVG(c.regions, col)+'</div>'+
+        '<div style="color:var(--ink)">'+
+          '<h3 style="margin:0 0 6px; display:flex; align-items:center; gap:8px">'+
+            '<span aria-hidden="true">'+c.ico+'</span>'+esc(c.core)+'</h3>'+
+          '<p class="meta"><b>Sensations:</b> '+esc(c.sens)+'</p>'+
+          '<p class="meta"><b>Where:</b> '+esc(c.region)+'</p>'+
+          '<p class="meta" style="margin-top:8px"><b>Arousal</b></p>'+
+          '<div class="arousal"><span style="width:'+c.arousal+'%"></span></div>'+
+          '<div style="display:flex; justify-content:space-between; font-size:.72rem; color:var(--ink-faint)"><span>still</span><span>activated</span></div>'+
+          '<p class="meta" style="margin-top:10px"><b>Forks into:</b> '+esc(c.pair)+'</p>'+
+        '</div>'+
+      '</div>';
+  }
+
+  /* ---------- Layer 4 ---------- */
+  function renderPairs(p){
+    p.innerHTML =
+      '<h2>Telling them apart</h2>'+
+      '<p class="sub">Close feelings can share a core but mean very different things — and the body often knows the difference first.</p>'+
+      PAIRS.map(function(pr){
+        var col=hue(pr.fam);
+        return '<div class="pair" style="color:'+col+'"><h3 style="color:var(--ink)">'+esc(pr.name)+
+          ' <span class="chip" style="font-weight:700">'+esc(pr.layer)+'</span></h3>'+
+          '<div class="vs">'+
+            '<div class="side"><b style="color:var(--ink)">'+esc(pr.a.t)+'</b><span style="color:var(--ink-soft)">'+esc(pr.a.b)+'</span></div>'+
+            '<div class="side"><b style="color:var(--ink)">'+esc(pr.c.t)+'</b><span style="color:var(--ink-soft)">'+esc(pr.c.b)+'</span></div>'+
+          '</div>'+
+          '<p class="fn"><b style="color:var(--ink)">Trigger:</b> '+esc(pr.trigger)+'<br>'+
+            '<b style="color:var(--ink)">Job:</b> '+esc(pr.fn)+'</p>'+
+        '</div>';
+      }).join('');
+  }
+
+  /* ---------- Layer 5 ---------- */
+  function skyHTML(kind){
+    if(kind==='sun') return '<div class="sun"><span class="orb"></span></div>';
+    if(kind==='rain'){ var s='<div class="rain">'; for(var i=0;i<10;i++) s+='<i style="left:'+(6+i*9)+'%; animation-delay:'+(i*0.15)+'s"></i>'; return s+'</div>'; }
+    if(kind==='cold'){ var s='<div class="cold"><span class="cloud" style="top:14px;left:8%"></span>'; for(var i=0;i<8;i++) s+='<i style="left:'+(10+i*11)+'%; animation-delay:'+(i*0.12)+'s"></i>'; return s+'</div>'; }
+    if(kind==='fog') return '<div class="fog"></div><span class="cloud" style="top:30px;left:6%"></span><span class="cloud" style="top:60px;left:40%; animation-delay:2s"></span>';
+    if(kind==='storm') return '<div class="storm"></div><span class="cloud" style="top:18px;left:20%; background:var(--ink-soft)"></span>';
+    if(kind==='flash') return '<div class="flash"></div>';
+    return '';
+  }
+  function renderWeather(p){
+    p.innerHTML =
+      '<h2>Weather — how they move through you</h2>'+
+      '<p class="sub">Here’s the whole point: each feeling is weather. It has a shape and an intensity — and it <b>passes</b>. You’re the sky it moves across.</p>'+
+      '<div class="weather">'+
+        WEATHER.map(function(w){
+          return '<div class="wcard" style="color:'+hue(w.fam)+'">'+
+            '<div class="sky" aria-hidden="true">'+skyHTML(w.kind)+'</div>'+
+            '<div class="wbody" style="color:var(--ink)">'+
+              '<h3><span class="dot" style="color:'+hue(w.fam)+'"></span>'+esc(w.core)+' — <span style="color:var(--ink-soft); font-weight:600">'+esc(w.label)+'</span></h3>'+
+              '<div class="int">'+esc(w.intensity)+'</div>'+
+              '<p class="passes">'+esc(w.passes)+'</p>'+
+            '</div>'+
+          '</div>';
+        }).join('')+
+      '</div>'+
+      '<div class="note">You don’t have to <i>do</i> anything with weather. You notice it, name it, and let it move. The sky stays.</div>';
+  }
+
+  /* ================= TAB SHELL ================= */
+  function buildTabs(){
+    LAYERS.forEach(function(L,i){
+      var t=document.createElement('button');
+      t.className='tab'; t.type='button'; t.id='tab-'+L.id;
+      t.setAttribute('role','tab'); t.setAttribute('aria-controls','panel-'+L.id);
+      t.setAttribute('aria-selected','false');
+      t.innerHTML='<span class="n">'+L.n+'</span>'+esc(L.label);
+      t.addEventListener('click',function(){ select(i); });
+      t.addEventListener('keydown',function(e){
+        if(e.key==='ArrowRight'){ e.preventDefault(); select((i+1)%LAYERS.length, true); }
+        if(e.key==='ArrowLeft'){ e.preventDefault(); select((i-1+LAYERS.length)%LAYERS.length, true); }
+      });
+      tabsEl.appendChild(t);
+
+      var pan=document.createElement('section');
+      pan.className='panel'; pan.id='panel-'+L.id;
+      pan.setAttribute('role','tabpanel'); pan.setAttribute('aria-labelledby','tab-'+L.id);
+      pan.setAttribute('tabindex','0');
+      panelsEl.appendChild(pan);
+      L._rendered=false; L._panel=pan; L._tab=t;
+    });
+  }
+  function select(i, focusTab){
+    LAYERS.forEach(function(L,j){
+      var on = j===i;
+      L._tab.setAttribute('aria-selected', on?'true':'false');
+      L._tab.tabIndex = on?0:-1;
+      L._panel.classList.toggle('active', on);
+      if(on && !L._rendered){ L.render(L._panel); L._rendered=true; }
+    });
+    if(focusTab) LAYERS[i]._tab.focus();
+    try{ localStorage.setItem('emotionModel.tab', LAYERS[i].id); }catch(e){}
+  }
+
+  buildTabs();
+  var start=0;
+  try{ var saved=localStorage.getItem('emotionModel.tab');
+       LAYERS.forEach(function(L,i){ if(L.id===saved) start=i; }); }catch(e){}
+  select(start);
+})();
+</script>
+</body>
+</html>

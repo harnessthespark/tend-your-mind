@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The sundial — today's weather</title>
+<style>
+  /* ===========================================================================
+     THE SUNDIAL — self-contained component (drops into garden.html later).
+     Two states, one disc:
+       · AMBIENT — Lisa's tilted disc-on-plinth render sits in the garden, a soft
+         gnomon shadow drifting across it. The shadow is the *mood*, not an input.
+       · ACTIVE  — engage it and the disc "turns to face you": a flat, head-on,
+         tappable wheel. Tap a segment → the gnomon swings there = today's weather.
+     No perspective math: ambient is the painted art, active is a code-drawn wheel.
+     ========================================================================== */
+  :root{
+    --paper:#f5efe2; --card:#fbf7ee; --line:#e2d8c4;
+    --ink:#3b4136; --ink-soft:#6c715f; --ink-faint:#9a9c89;
+    --moss:#6f8f5e; --sage:#cdd8bf; --focus:#3a6ea5;
+    --radius:16px;
+    --font:"Atkinson Hyperlegible",system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+    --display:"Caveat","Patrick Hand",ui-rounded,"Segoe Print",cursive;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{ --paper:#15171a; --card:#1f2227; --line:#33373e;
+           --ink:#e8e6df; --ink-soft:#a9ada3; --ink-faint:#7d8178;
+           --sage:#3a4436; --focus:#7fb0e0; }
+  }
+  *{box-sizing:border-box}
+  body{margin:0; background:var(--paper); color:var(--ink); font-family:var(--font);
+    line-height:1.55; font-size:17px; -webkit-font-smoothing:antialiased}
+  :focus-visible{outline:3px solid var(--focus); outline-offset:3px; border-radius:8px}
+  .wrap{max-width:640px; margin:0 auto; padding:24px 18px 60px; text-align:center}
+  h1{font-family:var(--display); font-weight:700; font-size:2.4rem; margin:.1em 0 .05em;
+     letter-spacing:.01em; line-height:1}
+  .lede{color:var(--ink-soft); max-width:46ch; margin:0 auto 6px; font-size:1.02rem}
+
+  /* ---- the stage: holds both states, gives 3D depth for the "turn to face" ---- */
+  .stage{position:relative; width:100%; aspect-ratio:1/1; max-width:460px; margin:14px auto 0;
+    perspective:1100px}
+  .face{position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
+    transition:opacity .7s ease, transform .7s cubic-bezier(.22,.68,.32,1);
+    transform-style:preserve-3d; backface-visibility:hidden}
+
+  /* AMBIENT — the painted tilted disc */
+  .ambient{cursor:pointer; opacity:1}
+  .ambient img{width:100%; height:auto; display:block; -webkit-user-drag:none}
+  .ambient .shadow{position:absolute; left:50%; top:38%; width:2px; height:24%;
+    transform-origin:bottom center; background:linear-gradient(to top, rgba(0,0,0,.28), rgba(0,0,0,0));
+    border-radius:2px; pointer-events:none; animation:sundrift 22s ease-in-out infinite}
+  .ambient .hint{position:absolute; left:50%; bottom:4%; transform:translateX(-50%);
+    background:var(--card); border:1.5px solid var(--line); border-radius:999px;
+    padding:6px 14px; font-size:.9rem; color:var(--ink-soft); white-space:nowrap;
+    box-shadow:0 2px 0 rgba(0,0,0,.04)}
+  @keyframes sundrift{0%,100%{transform:rotate(-26deg)}50%{transform:rotate(26deg)}}
+
+  /* ACTIVE — the flat code-drawn wheel, hidden + laid-back until engaged */
+  .active{opacity:0; pointer-events:none; transform:rotateX(52deg) scale(.86)}
+  .stage.is-active .ambient{opacity:0; pointer-events:none; transform:rotateX(40deg) scale(.9)}
+  .stage.is-active .active{opacity:1; pointer-events:auto; transform:rotateX(0) scale(1)}
+  .wheel{width:100%; height:auto; display:block; overflow:visible}
+  .wheel .seg{cursor:pointer; transition:opacity .35s ease}
+  .wheel .seg:hover{opacity:.88}
+  .wheel.has-pick .seg{opacity:.5}
+  .wheel.has-pick .seg.is-pick{opacity:1}
+  /* climate segments: a steady, breathing glow — the conditions, always lit,
+     never the inert "wait for the shadow" of a weather segment */
+  .wheel .glow{mix-blend-mode:screen; pointer-events:none}
+  .wheel .glow-warm{fill:#ffd9a0; animation:climateGlow 7s ease-in-out infinite}
+  .wheel .glow-cool{fill:#bfe9e9; animation:climateGlow 8s ease-in-out infinite}
+  @keyframes climateGlow{0%,100%{opacity:.10}50%{opacity:.30}}
+  .wheel .divider{stroke:#fff; stroke-width:3; opacity:.85}
+  .wheel .pill{fill:var(--card); stroke:var(--ink-faint); stroke-width:2}
+  .wheel .ring{fill:none; stroke:var(--ink); stroke-width:4; opacity:0;
+    transition:opacity .35s ease}
+  .wheel.has-pick .ring{opacity:.9}
+  .wheel .gnomon-shadow{fill:rgba(40,30,20,.26);
+    transition:transform .8s cubic-bezier(.34,1.2,.4,1); transform-origin:center}
+  .wheel .gnomon{transition:transform .8s cubic-bezier(.34,1.2,.4,1); transform-origin:center}
+  .wheel .hub{fill:var(--card); stroke:var(--ink); stroke-width:2.5}
+
+  /* ---- readout under the wheel ---- */
+  /* ---- the panel under the wheel: short readout, then drill-down on a pick ---- */
+  .panel{min-height:96px; margin:16px auto 0; max-width:46ch}
+  .panel .kicker{font-size:.78rem; font-weight:800; letter-spacing:.08em;
+    text-transform:uppercase; color:var(--ink-faint)}
+  .panel .name{font-family:var(--display); font-size:2rem; line-height:1.05; margin:2px 0 4px}
+  .panel .line{color:var(--ink-soft); font-size:1rem; font-style:italic}
+  .panel.idle .name,.panel.idle .line{color:var(--ink-faint); font-style:normal}
+
+  .detail{display:grid; grid-template-columns:104px 1fr; gap:16px; text-align:left;
+    margin-top:14px; background:var(--card); border:1.5px solid var(--line);
+    border-radius:var(--radius); padding:14px 16px}
+  @media(max-width:460px){.detail{grid-template-columns:1fr; justify-items:center; text-align:center}}
+  .detail .bm{display:flex; flex-direction:column; align-items:center; gap:4px}
+  .detail .bm-cap{font-size:.72rem; color:var(--ink-faint); font-weight:700}
+  .bodymap{width:96px; height:186px}
+  .detail .info{font-size:.92rem}
+  .detail .sens{margin:0 0 10px}
+  .detail .sens b{display:block; font-size:.74rem; letter-spacing:.06em; text-transform:uppercase;
+    color:var(--ink-faint); font-weight:800}
+  .ar-row{display:flex; align-items:center; gap:8px; margin-bottom:12px}
+  .ar-lab{font-size:.7rem; color:var(--ink-faint); font-weight:700}
+  .arousal{flex:1; height:8px; background:var(--line); border-radius:999px; overflow:hidden}
+  .arousal>span{display:block; height:100%; border-radius:999px}
+  .pairbox{border-left:3px solid var(--c,var(--ink-faint)); padding-left:11px}
+  .pairbox .pt{font-size:.74rem; letter-spacing:.05em; text-transform:uppercase;
+    color:var(--ink-faint); font-weight:800; margin-bottom:6px}
+  .pairbox .vs{display:grid; grid-template-columns:1fr 1fr; gap:10px}
+  @media(max-width:380px){.pairbox .vs{grid-template-columns:1fr}}
+  .pairbox .side b{display:block; color:var(--ink)}
+  .pairbox .side span{font-size:.86rem; color:var(--ink-soft)}
+  .pairbox .pn{margin:8px 0 0; font-size:.86rem; color:var(--ink-soft); font-style:italic}
+  .pairnote{margin:12px 0 0; font-size:.9rem; color:var(--ink-soft); font-style:italic}
+  .climate-note{margin-top:14px; text-align:left; background:var(--card);
+    border:1.5px solid var(--line); border-left-width:4px; border-radius:var(--radius);
+    padding:13px 16px; font-size:.94rem; color:var(--ink-soft)}
+  .climate-note b{color:var(--ink)}
+
+  /* soft stand-in for "the weather casts over the garden" — garden.html does the
+     real version; here it's a faint backdrop wash so the standalone demo is alive */
+  .weatherwash{position:fixed; inset:0; z-index:-1; opacity:0; pointer-events:none;
+    transition:opacity 1.1s ease, background 1.1s ease}
+
+  .controls{margin-top:18px; display:flex; gap:10px; justify-content:center; flex-wrap:wrap}
+  .btn{font-family:inherit; font-size:.92rem; font-weight:700; cursor:pointer;
+    background:var(--card); color:var(--ink); border:1.5px solid var(--line);
+    border-radius:999px; padding:9px 16px; transition:border-color .15s, background .15s}
+  .btn:hover{border-color:var(--ink-faint)}
+  .btn.ghost{background:transparent}
+  .btn[hidden]{display:none}
+
+  .todo{margin:26px auto 0; max-width:52ch; text-align:left; background:var(--card);
+    border:1.5px dashed var(--line); border-radius:var(--radius); padding:13px 16px;
+    font-size:.88rem; color:var(--ink-soft)}
+  .todo b{color:var(--ink)}
+  .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;
+    clip:rect(0,0,0,0);white-space:nowrap;border:0}
+
+  @media (prefers-reduced-motion: reduce){
+    .face{transition:opacity .25s ease !important; transform:none !important}
+    .stage.is-active .ambient{transform:none !important}
+    .stage.is-active .active{transform:none !important}
+    .ambient .shadow{animation:none}
+    .wheel .gnomon,.wheel .gnomon-shadow{transition:none}
+    .wheel .glow{animation:none !important; opacity:.18}
+    .weatherwash{transition:opacity .3s ease}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>the sundial</h1>
+  <p class="lede">As attention moves like the sun, its shadow falls across the day's weather.
+    Tap the dial to read where you are today — and remember, weather passes.</p>
+
+  <div class="stage" id="stage">
+    <!-- AMBIENT: the painted tilted disc, shadow drifting -->
+    <div class="face ambient" id="ambient" role="button" tabindex="0"
+         aria-label="The sundial in the garden. Activate to turn it to face you and read today's weather.">
+      <img src="assets/sun-dial-web.png" alt="A faceted, many-coloured sundial disc on a carved stone plinth, tilted in the garden.">
+      <span class="shadow" aria-hidden="true"></span>
+      <span class="hint" aria-hidden="true">tap to read your weather</span>
+    </div>
+
+    <!-- ACTIVE: the flat, head-on, tappable wheel (built in JS) -->
+    <div class="face active" id="active">
+      <svg class="wheel" id="wheel" viewBox="0 0 440 440" role="group"
+           aria-label="Wheel of feelings. Eight segments. Choose the one that fits today.">
+      </svg>
+    </div>
+  </div>
+
+  <div class="panel idle" id="panel" aria-live="polite"></div>
+
+  <div class="controls">
+    <button class="btn" id="engage" type="button">turn the dial to face me</button>
+    <button class="btn ghost" id="release" type="button" hidden>back to the garden</button>
+  </div>
+
+  <div class="weatherwash" id="wash" aria-hidden="true"></div>
+  <p class="sr-only" id="srSummary"></p>
+
+  <div class="todo">
+    <b>✓ Resolved — Seeking &amp; Care are climate, not weather.</b> They carry a steady glow
+    (Seeking warm = the sun/source, Care cool = a warm front) and the readout says so. The dial
+    now teaches the spine itself: 6 segments are weather that passes, 2 are climate you tend.<br><br>
+    <b>⚠ Still NEEDS LISA — confirm the 8 line-up.</b> Proposed clockwise from the top:
+    anger · <i>seeking</i> · joy · disgust · <i>care</i> · sadness · fear · surprise
+    (italics = climate), sampled from your disc colours. Confirm or swap any — it's one editable
+    block at the top of the script (<code>SEGMENTS</code>).
+  </div>
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  /* ===================== EDIT HERE — the 8 segments =========================
+     Clockwise from the top. `mode` is 'weather' (rolls in and passes) or
+     'climate' (the steady conditions you tend, not events that pass) — that
+     distinction IS the model's spine: "feelings are weather, not climate."
+       · Seeking = climate/source: the sun itself, the light that casts the
+         shadow. Not a weather — what powers the dial.
+       · Care    = climate/warmth: a warm front, the mild spell you tend over
+         seasons and between gardens.
+     Colours are sampled from Lisa's disc; `line` is the placeholder readout.
+     ========================================================================= */
+  var SEGMENTS = [
+    {key:'anger', label:'anger', color:'#e0432a', mode:'weather', kind:'storm',
+     line:'a thunderhead — burns hot, then blows over.',
+     sens:'heat, pressure, tension, jaw clenching', regions:['face','hands','chest'], arousal:88,
+     pair:{title:'frustration vs anger',
+       a:{t:'frustration', b:'pressure without release'},
+       c:{t:'anger', b:'heat, energy surge'},
+       note:'a blocked goal, or a real injustice — the body tells them apart.'}},
+    {key:'seeking', label:'seeking', color:'#e89527', mode:'climate', glow:'warm',
+     line:'the sun itself — not a weather, but the light every feeling is shaped from.',
+     connect:'the always-on pull toward growth — every plant leaning to the light. you tend it, you don’t wait it out.'},
+    {key:'joy', label:'joy', color:'#e7b91f', mode:'weather', kind:'sun',
+     line:'bright, open sky — even sunshine is in motion.',
+     sens:'warmth, lightness, energy, tingling', regions:['full'], arousal:90,
+     pair:{title:'contentment vs joy',
+       a:{t:'contentment', b:'still warmth'},
+       c:{t:'joy', b:'expansive energy'},
+       note:'safety and satisfaction, or a bright surprise.'}},
+    {key:'disgust', label:'disgust', color:'#2d9846', mode:'weather', kind:'fog',
+     line:'drifting fog — it clouds the view, then lifts.',
+     sens:'nausea, constriction, facial tension', regions:['gut','throat','face'], arousal:55,
+     pair:{title:'guilt vs shame',
+       a:{t:'guilt', b:'stomach drop, restlessness'},
+       c:{t:'shame', b:'full-body heat, collapse urge'},
+       note:'self-conscious feelings, parked here honestly — shame is close to self-directed disgust; guilt shares the gut.'}},
+    {key:'care', label:'care', color:'#1f9a9a', mode:'climate', glow:'cool',
+     line:'a warm front — the mild spell you tend over seasons, and between gardens.',
+     connect:'runs on the same chemistry as grief — the bond it builds is the bond that aches when it’s lost.'},
+    {key:'sadness', label:'sadness', color:'#2f63b3', mode:'weather', kind:'rain',
+     line:'steady rain — heavy to stand in, and it waters things.',
+     sens:'heaviness, tightness, fatigue, throat constriction', regions:['chest','throat','limbs'], arousal:25,
+     pair:{title:'grief vs depression',
+       a:{t:'grief', b:'waves, chest tightness'},
+       c:{t:'depression', b:'flat, diffuse numbness'},
+       note:'a loss moving through in waves, or a sustained flat low.'}},
+    {key:'fear', label:'fear', color:'#5b4a9e', mode:'weather', kind:'cold',
+     line:'a cold front — loud, but already leaving.',
+     sens:'chills, muscle tension, racing heart, shallow breath', regions:['chest','limbs','gut'], arousal:85,
+     pair:{title:'anxiety vs excitement',
+       a:{t:'anxiety', b:'constriction'},
+       c:{t:'excitement', b:'expansiveness'},
+       note:'the same racing body — uncertain threat, or anticipated good.'}},
+    {key:'surprise', label:'surprise', color:'#cc3f86', mode:'weather', kind:'flash',
+     line:'a sudden flash — the briefest weather, then gone.',
+     sens:'sudden alertness, widening, brief freeze', regions:['face','chest'], arousal:97,
+     pair:null}
+  ];
+
+  var N = SEGMENTS.length, STEP = 360/N;
+  var CX=220, CY=220, R=180, INNER=34;
+
+  /* ---- geometry: angle 0 = top (12 o'clock), clockwise positive ---- */
+  function pt(deg, rad){
+    var t = (deg-90) * Math.PI/180;            // -90 so 0deg points up
+    return [CX + rad*Math.cos(t), CY + rad*Math.sin(t)];
+  }
+  function wedgePath(i){
+    var a0 = i*STEP - STEP/2, a1 = i*STEP + STEP/2;
+    var p0 = pt(a0, R), p1 = pt(a1, R);
+    return 'M '+CX+' '+CY+' L '+p0[0].toFixed(2)+' '+p0[1].toFixed(2)+
+           ' A '+R+' '+R+' 0 0 1 '+p1[0].toFixed(2)+' '+p1[1].toFixed(2)+' Z';
+  }
+  function arcPath(i, rad){   // the highlight ring arc over a selected wedge
+    var a0 = i*STEP - STEP/2, a1 = i*STEP + STEP/2;
+    var p0 = pt(a0, rad), p1 = pt(a1, rad);
+    return 'M '+p0[0].toFixed(2)+' '+p0[1].toFixed(2)+
+           ' A '+rad+' '+rad+' 0 0 1 '+p1[0].toFixed(2)+' '+p1[1].toFixed(2);
+  }
+
+  var SVGNS='http://www.w3.org/2000/svg';
+  function el(name, attrs){
+    var n=document.createElementNS(SVGNS,name);
+    for(var k in attrs) n.setAttribute(k, attrs[k]);
+    return n;
+  }
+
+  var wheel = document.getElementById('wheel');
+
+  // segments
+  SEGMENTS.forEach(function(s,i){
+    var p = el('path',{d:wedgePath(i), fill:s.color, class:'seg', 'data-i':i,
+      role:'button', tabindex:'0',
+      'aria-label':s.label+(s.mode==='weather'?' — a weather':' — climate, not weather')});
+    p.addEventListener('click',function(){ pick(i); });
+    p.addEventListener('keydown',function(e){
+      if(e.key==='Enter'||e.key===' '){ e.preventDefault(); pick(i); }
+    });
+    wheel.appendChild(p);
+  });
+  // climate segments carry a steady soft glow (the conditions you tend) rather
+  // than waiting inert for the shadow to land — Seeking warm, Care cool.
+  SEGMENTS.forEach(function(s,i){
+    if(s.mode!=='climate') return;
+    wheel.appendChild(el('path',{d:wedgePath(i), class:'glow glow-'+(s.glow||'warm'),
+      'aria-hidden':'true', 'pointer-events':'none'}));
+  });
+  // white radial dividers
+  for(var i=0;i<N;i++){
+    var a = i*STEP - STEP/2, p = pt(a,R);
+    wheel.appendChild(el('line',{x1:CX,y1:CY,x2:p[0].toFixed(2),y2:p[1].toFixed(2),class:'divider'}));
+  }
+  // four decorative cardinal pill-markers on the rim (no extra meaning)
+  [0,90,180,270].forEach(function(a){
+    var c = pt(a, R+14);
+    var pill = el('rect',{x:c[0]-7,y:c[1]-4,width:14,height:8,rx:4,class:'pill',
+      transform:'rotate('+a+' '+c[0]+' '+c[1]+')'});
+    wheel.appendChild(pill);
+  });
+  // selection highlight ring (sits above segments)
+  var ring = el('path',{class:'ring', d:''});
+  wheel.appendChild(ring);
+  // gnomon: a stone needle that swings to the pick, casting a soft shadow onto
+  // the chosen segment = "today's weather" (points up at rest; rotates to pick)
+  var TIP = R*0.74;
+  var gShadow = el('path',{class:'gnomon-shadow',
+    d:'M '+(CX-18)+' '+CY+' L '+CX+' '+(CY-TIP-6)+' L '+(CX+18)+' '+CY+' Z'});
+  wheel.appendChild(gShadow);
+  var gnomon = el('g',{class:'gnomon'});
+  gnomon.appendChild(el('path',{d:'M '+CX+' '+(CY-TIP)+' L '+(CX-7)+' '+(CY-INNER)+' L '+(CX+7)+' '+(CY-INNER)+' Z',
+    fill:'#8a7a5e'}));                                                    // lit face
+  gnomon.appendChild(el('path',{d:'M '+CX+' '+(CY-TIP)+' L '+(CX+7)+' '+(CY-INNER)+' L '+CX+' '+(CY-INNER)+' Z',
+    fill:'#5b4f3a'}));                                                    // shaded face
+  wheel.appendChild(gnomon);
+  wheel.appendChild(el('circle',{cx:CX,cy:CY,r:INNER,class:'hub'}));
+
+  /* ---- interaction ---- */
+  var stage=document.getElementById('stage'),
+      ambient=document.getElementById('ambient'),
+      engageBtn=document.getElementById('engage'),
+      releaseBtn=document.getElementById('release'),
+      panel=document.getElementById('panel'),
+      wash=document.getElementById('wash'),
+      srSummary=document.getElementById('srSummary'),
+      picked=-1;
+
+  function esc(s){ return String(s).replace(/[&<>]/g,function(c){
+    return {'&':'&amp;','<':'&lt;','>':'&gt;'}[c]; }); }
+
+  // where it lands — a simple body silhouette, highlighted regions in the hue
+  function bodySVG(regions, col){
+    regions = regions || [];
+    function on(r){ return regions.indexOf(r)>-1 || regions.indexOf('full')>-1; }
+    function f(r){ return on(r) ? col : 'var(--line)'; }
+    return '<svg class="bodymap" viewBox="0 0 96 186" role="img" aria-label="Where it is felt in the body">'+
+      '<circle cx="48" cy="21" r="15" fill="'+f('face')+'"/>'+
+      '<rect x="43" y="35" width="10" height="11" rx="3" fill="'+f('throat')+'"/>'+
+      '<rect x="31" y="46" width="34" height="42" rx="10" fill="'+f('chest')+'"/>'+
+      '<rect x="35" y="86" width="26" height="28" rx="8" fill="'+f('gut')+'"/>'+
+      '<rect x="16" y="50" width="12" height="48" rx="6" fill="'+f('hands')+'"/>'+
+      '<rect x="68" y="50" width="12" height="48" rx="6" fill="'+f('hands')+'"/>'+
+      '<rect x="37" y="114" width="10" height="60" rx="5" fill="'+f('limbs')+'"/>'+
+      '<rect x="50" y="114" width="10" height="60" rx="5" fill="'+f('limbs')+'"/>'+
+    '</svg>';
+  }
+
+  function pairBox(s){
+    var p=s.pair;
+    return '<div class="pairbox" style="--c:'+s.color+'">'+
+      '<div class="pt">telling them apart · '+esc(p.title)+'</div>'+
+      '<div class="vs">'+
+        '<div class="side"><b>'+esc(p.a.t)+'</b><span>'+esc(p.a.b)+'</span></div>'+
+        '<div class="side"><b>'+esc(p.c.t)+'</b><span>'+esc(p.c.b)+'</span></div>'+
+      '</div>'+
+      '<p class="pn">'+esc(p.note)+'</p>'+
+    '</div>';
+  }
+
+  function head(kicker, name, color, line){
+    return '<div class="kicker">'+esc(kicker)+'</div>'+
+      '<div class="name"'+(color?' style="color:'+color+'"':'')+'>'+esc(name)+'</div>'+
+      '<div class="line">'+esc(line)+'</div>';
+  }
+
+  function renderPanel(state){
+    if(state==='idle'){
+      panel.className='panel idle';
+      panel.innerHTML=head('the dial rests','turn it to face you','',
+        "the shadow drifts on its own — that's the weather moving.");
+      return;
+    }
+    if(state==='prompt'){
+      panel.className='panel';
+      panel.innerHTML=head('today','pick where you are','',
+        'tap a segment — the gnomon will swing to it.');
+      return;
+    }
+    var s=state, isW=s.mode==='weather';
+    panel.className='panel '+(isW?'is-weather':'is-climate');
+    var html=head(isW?"today's weather":'climate, not weather', s.label, s.color, s.line);
+    if(isW){
+      html+='<div class="detail">'+
+        '<div class="bm">'+bodySVG(s.regions, s.color)+'<span class="bm-cap">where it lands</span></div>'+
+        '<div class="info">'+
+          '<p class="sens"><b>in the body</b>'+esc(s.sens)+'</p>'+
+          '<div class="ar-row"><span class="ar-lab">still</span>'+
+            '<div class="arousal"><span style="width:'+s.arousal+'%; background:'+s.color+'"></span></div>'+
+            '<span class="ar-lab">activated</span></div>'+
+          (s.pair ? pairBox(s)
+                  : '<p class="pairnote">surprise stands alone — no twin. it resolves into whatever weather comes next.</p>')+
+        '</div>'+
+      '</div>';
+    } else {
+      html+='<div class="climate-note" style="border-left-color:'+s.color+'">'+
+        '<b>'+(s.key==='seeking'?'the engine underneath':'a way of relating')+'</b><br>'+
+        esc(s.connect)+'</div>';
+    }
+    panel.innerHTML=html;
+    srSummary.textContent='You chose '+s.label+'. '+
+      (isW ? 'It is a weather — it passes. Felt in '+(s.regions||[]).join(', ')+'. '
+           : 'This is climate, not weather — a steady condition you tend, not one that passes. ')+s.line;
+  }
+
+  // "cast the weather" — standalone backdrop wash; garden.html does the real cast
+  function cast(s){
+    if(!s){ wash.style.opacity='0'; return; }
+    wash.style.background='radial-gradient(120% 90% at 50% 0%, '+s.color+'22, '+s.color+'08 60%, transparent)';
+    wash.style.opacity='1';
+  }
+
+  function engage(){
+    stage.classList.add('is-active');
+    engageBtn.hidden=true; releaseBtn.hidden=false;
+    renderPanel('prompt');
+    var first=wheel.querySelector('.seg');
+    if(first) first.focus();
+  }
+  function release(){
+    stage.classList.remove('is-active');
+    wheel.classList.remove('has-pick');
+    wheel.querySelectorAll('.seg').forEach(function(p){ p.classList.remove('is-pick'); });
+    picked=-1; cast(null);
+    engageBtn.hidden=false; releaseBtn.hidden=true;
+    renderPanel('idle');
+    engageBtn.focus();
+  }
+  function pick(i){
+    picked=i; var s=SEGMENTS[i];
+    wheel.classList.add('has-pick');
+    wheel.querySelectorAll('.seg').forEach(function(p,j){ p.classList.toggle('is-pick', j===i); });
+    ring.setAttribute('d', wedgePath(i));
+    var ang = i*STEP;                              // swing gnomon + shadow to the pick
+    gShadow.style.transform='rotate('+ang+'deg)';
+    gnomon.style.transform='rotate('+ang+'deg)';
+    renderPanel(s);
+    cast(s);
+    // integration contract: garden.html listens for this to cast the weather +
+    // light the sensation→garden-place zones (sensation map is NEEDS LISA there)
+    document.dispatchEvent(new CustomEvent('sundial:select', {detail:{
+      key:s.key, label:s.label, mode:s.mode, kind:s.kind||null,
+      regions:s.regions||[], color:s.color
+    }}));
+  }
+  renderPanel('idle');
+
+  ambient.addEventListener('click', engage);
+  ambient.addEventListener('keydown', function(e){
+    if(e.key==='Enter'||e.key===' '){ e.preventDefault(); engage(); }
+  });
+  engageBtn.addEventListener('click', engage);
+  releaseBtn.addEventListener('click', release);
+
+  // remember last pick within session (UI nicety only, not authoritative)
+  try{
+    var saved=localStorage.getItem('sundial.pick');
+    if(saved!==null && SEGMENTS[+saved]){ /* leave dial at rest; restore on engage */ }
+  }catch(e){}
+  var _pick=pick;
+  pick=function(i){ _pick(i); try{ localStorage.setItem('sundial.pick', i); }catch(e){} };
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,1634 @@
+<!DOCTYPE html>
+<!--
+  THE GARDEN — working title (Lisa to name).
+  Spine: "You tend the conditions, not the thoughts."
+  Brain structure IS the garden: Gardener=PFC, Alarm=amygdala,
+  Climate&water=hypothalamus, Seed store=hippocampus.
+
+  This file: VERTICAL SLICE — screens 1-3 fully built; 4-9 are light
+  "not yet planted" stubs so the growing progress reads end to end.
+
+  Build notes honoured:
+   - Earth-and-green palette in CSS variables (Harness the Spark branding drops over).
+   - Caveat = headings only; Atkinson Hyperlegible = body (accessibility is the brief).
+   - Progress indicator = a row of leaves filling, never a clinical bar.
+   - Coach mode (live-session) OFF by default; expands gently (no layout jolt).
+   - Visuals are EXPLICIT placeholder slots for Lisa to replace in Adobe.
+   - Locked-out dynamic (screen 2) reads as STORM/agitated (amygdala=hyperarousal),
+     NOT stillness — stillness/fog is reserved for the fallow season (screen 7).
+   - State = ONE object; localStorage only as silent resume (try/catch).
+   - NO crisis link (parked — not in brief; ask Lisa).
+-->
+<html lang="en-GB">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>the garden — tend the conditions</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=Caveat:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+  /* ---------- brandable tokens (override these for Harness the Spark) ---------- */
+  :root{
+    --paper:#f5efe2;        /* warm cream */
+    --paper-2:#efe7d4;
+    --card:#fbf7ee;
+    --ink:#3b4136;          /* dark olive — readable, never pure black */
+    --ink-soft:#6c715f;
+    --ink-faint:#9a9c89;
+    --moss:#6f8f5e;         /* primary green */
+    --moss-deep:#54713e;
+    --sage:#cdd8bf;
+    --soil:#8a6f51;         /* earth */
+    --bloom:#d98c5f;        /* warm terracotta accent */
+    --frost:#8fb0c4;        /* cool — sky / calm accent */
+    --alarm:#cf7a52;        /* agitated warning */
+    --line:#dacfb6;
+    --radius:24px;
+    --shadow:16px 18px 42px rgba(95,80,55,.12);
+    --maxw:720px;
+    --ease:cubic-bezier(.22,.61,.36,1);
+    --font-head:"Caveat",cursive;
+    --font-body:"Atkinson Hyperlegible",system-ui,sans-serif;
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{
+    margin:0; font-family:var(--font-body); color:var(--ink); line-height:1.62;
+    background:
+      radial-gradient(140% 90% at 50% 0%, var(--paper) 40%, var(--paper-2) 100%);
+    -webkit-font-smoothing:antialiased; overflow-x:hidden;
+  }
+
+  /* ---------- header ---------- */
+  header{
+    display:flex; align-items:center; justify-content:space-between; gap:16px;
+    padding:18px clamp(18px,5vw,48px);
+  }
+  .wordmark{font-family:var(--font-head); font-size:1.6rem; font-weight:700; display:flex; align-items:center; gap:9px}
+  .wordmark .leaf{width:18px; height:18px; background:var(--moss); border-radius:0 60% 0 60%; transform:rotate(-20deg)}
+  .coach-toggle{display:flex; align-items:center; gap:9px; font-size:.86rem; font-weight:700; color:var(--ink-soft); cursor:pointer; user-select:none}
+  .switch{width:42px; height:24px; border-radius:999px; background:var(--line); position:relative; transition:background .25s}
+  .switch::after{content:""; position:absolute; top:3px; left:3px; width:18px; height:18px; border-radius:50%; background:#fff; transition:transform .25s var(--ease)}
+  .coach-toggle input{position:absolute; opacity:0; width:0; height:0}
+  .coach-toggle input:checked + .switch{background:var(--moss)}
+  .coach-toggle input:checked + .switch::after{transform:translateX(18px)}
+
+  /* ---------- screens ---------- */
+  main{display:flex; align-items:flex-start; justify-content:center; padding:6px clamp(18px,5vw,48px) 20px}
+  .screen{width:100%; max-width:var(--maxw); display:none; animation:rise .65s var(--ease) both}
+  .screen.active{display:block}
+  @keyframes rise{from{opacity:0; transform:translateY(14px)} to{opacity:1; transform:none}}
+
+  .eyebrow{font-family:var(--font-head); font-size:1.4rem; font-weight:600; color:var(--moss-deep); margin:0 0 2px}
+  h1{font-family:var(--font-head); font-weight:700; font-size:clamp(2.6rem,7vw,4rem); line-height:1.02; margin:.1em 0 .35em}
+  h2{font-family:var(--font-head); font-weight:700; font-size:clamp(2.1rem,5.5vw,3rem); line-height:1.05; margin:.1em 0 .4em}
+  .lede{font-size:1.18rem; max-width:56ch}
+  p{max-width:62ch}
+  .muted{color:var(--ink-soft)}
+  .fine{font-size:.86rem; color:var(--ink-faint)}
+
+  /* ---------- placeholder art slots (for Lisa's Adobe art) ---------- */
+  .slot{
+    border:2px dashed #c3b48f; border-radius:18px; background:repeating-linear-gradient(45deg,rgba(196,180,140,.07) 0 12px,transparent 12px 24px);
+    color:#a08f68; padding:20px; margin:22px 0; text-align:center; display:flex; flex-direction:column; gap:3px; align-items:center; justify-content:center;
+  }
+  .slot .ico{font-size:1.5rem}
+  .slot .nm{font-weight:700; color:#8a784f}
+  .slot .sp{font-size:.8rem; font-family:ui-monospace,monospace}
+  .slot.hero{min-height:200px}
+  .slot.scene{min-height:230px}
+  /* dropped-in art: shows when the file exists, else the placeholder stays */
+  .art-img{display:none; width:100%; height:auto; border-radius:18px; margin:22px 0; box-shadow:var(--shadow)}
+  .art-img.ok{display:block}
+  /* ---------- screen 2 garden scene (inlined SVG, scriptable layers) ---------- */
+  .scene-stage{margin:22px 0; border-radius:18px; overflow:hidden; box-shadow:var(--shadow); background:linear-gradient(#cfe3f2 0%,#dcebe8 0%,#e9f1ea 70%); line-height:0;
+    /* break out of the 720px text column so the garden reads big */
+    width:min(94vw,1040px); margin-left:50%; transform:translateX(-50%)}
+  @media(max-width:600px){.scene-stage{width:100%; margin-left:0; transform:none}}
+  .scene-stage svg{display:block; width:100%; height:auto; transition:filter .6s ease}
+  /* two-state scene: anxiety.png cross-fades over calm.png when the alarm trips */
+  .scene-stage #stormscene{opacity:0; transition:opacity 1s ease}
+  .scene-stage svg.storm #stormscene{opacity:1}
+  @media(prefers-reduced-motion:reduce){.scene-stage #stormscene{transition:none}}
+  /* the wall close-up — a quiet look at your boundary as it heals */
+  .wall-close{position:fixed; inset:0; z-index:300; background:rgba(40,45,38,.55);
+    display:flex; align-items:center; justify-content:center; padding:20px; backdrop-filter:blur(2px)}
+  .wall-close[hidden]{display:none}
+  .wall-card{position:relative; background:var(--card); border-radius:20px; max-width:660px; width:100%;
+    padding:22px; box-shadow:var(--shadow); animation:wallIn .4s var(--ease)}
+  @keyframes wallIn{from{opacity:0; transform:translateY(12px)}to{opacity:1; transform:none}}
+  @media(prefers-reduced-motion:reduce){.wall-card{animation:none}}
+  .wall-x{position:absolute; top:8px; right:14px; border:none; background:none; font-size:1.9rem;
+    line-height:1; cursor:pointer; color:var(--ink-soft)}
+  .wall-eyebrow{font-family:var(--font-head); font-size:1.3rem; color:var(--moss-deep); display:block; margin-bottom:8px}
+  .wall-img{width:100%; height:auto; border-radius:12px; display:block; box-shadow:0 6px 16px rgba(60,50,40,.18)}
+  .wall-copy{margin-top:16px; font-size:1.08rem; line-height:1.5; color:var(--ink); text-align:center}
+  @media(prefers-reduced-motion:reduce){.scene-stage svg{transition:none}}
+  .scene-stage .slot.scene{margin:0; border-radius:18px}
+  .scene-part{cursor:pointer}
+  .scene-stage #gardner{transition:opacity .6s var(--ease)}
+  /* weather: clouds drift + fade in over the sky for the storm (calm = cleared off) */
+  .scene-stage #clouds{opacity:0; transform:translate(70px,-26px); transition:opacity 1s ease, transform 1.5s ease}
+  .scene-stage svg.storm #clouds{opacity:1; transform:translate(0,0)}
+  @media(prefers-reduced-motion:reduce){.scene-stage #clouds{transition:none}}
+  /* ---------- screen 4 flowerbed (clean CSS bed; flowers are the art) ---------- */
+  .bloom-stage{position:relative; margin:22px 0; border-radius:18px; overflow:hidden; box-shadow:var(--shadow);
+    width:min(94vw,1040px); margin-left:50%; transform:translateX(-50%); aspect-ratio:5 / 2;
+    background:linear-gradient(#d4eaf3 0%, #e1f0e2 46%, #c6deac 60%, #b4d199 100%)}
+  @media(max-width:600px){.bloom-stage{width:100%; margin-left:0; transform:none; aspect-ratio:3 / 2}}
+  .bed-soil{position:absolute; left:-3%; right:-3%; bottom:0; height:27%; z-index:100;
+    background:linear-gradient(#7c6043,#5b4731); border-radius:46% 54% 0 0 / 64% 70% 0 0;
+    box-shadow:inset 0 7px 12px rgba(0,0,0,.14)}
+  .bloom{position:absolute; transform:translate(-50%,-100%); transform-origin:bottom center; pointer-events:none; line-height:0;
+    filter:drop-shadow(2px 5px 3px rgba(60,50,40,.22))}
+  .bloom svg, .bloom img{display:block; height:100%; width:auto}
+  .bloom.grow{animation:bloomgrow .7s var(--ease) both}
+  @keyframes bloomgrow{0%{transform:translate(-50%,-22%) scale(.08); opacity:0}55%{opacity:1}100%{transform:translate(-50%,-100%) scale(1); opacity:1}}
+  @media(prefers-reduced-motion:reduce){.bloom.grow{animation:none}}
+  /* screen 5: weeds reuse .bloom positioning; fates */
+  .bloom.weed.kept{filter:drop-shadow(0 0 7px rgba(111,143,94,.85)) drop-shadow(2px 5px 3px rgba(60,50,40,.22))}
+  #weedPicked .empty{color:var(--ink-faint); font-style:italic}
+
+  /* ---------- screen 6 the bucket (Lisa's bucket + watering can over the bed) ---------- */
+  .bucket-stage{position:relative; height:300px; margin:22px 0; border-radius:18px; overflow:hidden; box-shadow:var(--shadow);
+    width:min(94vw,1040px); margin-left:50%; transform:translateX(-50%);
+    background:linear-gradient(#d9ecf4 0%,#e7f1e6 56%)}
+  @media(max-width:600px){.bucket-stage{width:100%; margin-left:0; transform:none}}
+  .bed-band{position:absolute; left:0; right:0; bottom:0; height:34%;
+    background:linear-gradient(#9db87a,#6f8f5e 60%,#54713e); transition:filter .6s var(--ease)}
+  /* fillable bucket (orange, to match your art) — water rises a notch per load */
+  .bucket{position:absolute; left:11%; bottom:18%; width:150px; height:150px; z-index:3}
+  .bucket-handle{position:absolute; left:50%; top:-20px; transform:translateX(-50%); width:120px; height:52px;
+    border:5px solid #9a9c89; border-bottom:none; border-radius:60px 60px 0 0; z-index:1}
+  .bucket-body{position:absolute; inset:8px 0 0 0; overflow:hidden; background:#e8651f;
+    clip-path:polygon(10% 0,90% 0,80% 100%,20% 100%); box-shadow:inset 0 -12px 20px rgba(0,0,0,.20); z-index:2}
+  .bucket-water{position:absolute; left:0; right:0; bottom:0; height:0;
+    background:linear-gradient(#46a7df,#2b7fb0); transition:height .7s var(--ease)}
+  .bucket-rim{position:absolute; left:50%; top:3px; transform:translateX(-50%); width:140px; height:18px; border-radius:50%;
+    background:#cf5a1c; border:3px solid #b34c14; z-index:4}
+  .watering-can{position:absolute; right:9%; bottom:22%; height:50%; width:auto; z-index:4;
+    transform-origin:78% 72%; transition:transform .6s var(--ease)}
+  .bucket-stage.pouring .watering-can{transform:rotate(-30deg) translate(-6px,-4px)}
+  .pour-stream{position:absolute; right:30%; top:42%; width:9px; height:0; transform:rotate(9deg);
+    background:linear-gradient(rgba(95,142,164,.95),rgba(143,176,196,.12)); border-radius:5px; z-index:3}
+  .bucket-stage.pouring .pour-stream{animation:pour 1.5s var(--ease)}
+  @keyframes pour{0%{height:0;opacity:0}25%{height:120px;opacity:1}100%{height:120px;opacity:.05}}
+  .bucket-stage.pouring .bed-band{filter:saturate(1.55) brightness(1.1)}
+  @media(prefers-reduced-motion:reduce){.watering-can{transition:none}.bucket-stage.pouring .pour-stream{animation:none}}
+
+  /* ---------- screen 8 tending plan (pick one; rest dim) ---------- */
+  .tending-grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(148px,1fr)); gap:12px; margin:22px 0}
+  .tend-card{font-family:inherit; text-align:left; background:var(--card); border:1.5px solid var(--line); border-radius:16px;
+    padding:14px 16px; cursor:pointer; transition:all .25s var(--ease); display:flex; flex-direction:column; gap:3px}
+  .tend-card .ico{font-size:1.7rem; line-height:1}
+  .tend-card .nm{font-weight:700; color:var(--ink)}
+  .tend-card .ds{font-size:.84rem; color:var(--ink-soft)}
+  .tend-card:hover{border-color:var(--moss)}
+  .tend-card.chosen{border-color:var(--moss-deep); background:#eef3e6; box-shadow:0 6px 18px rgba(84,113,62,.18); transform:translateY(-2px)}
+  .tending-grid.has-choice .tend-card:not(.chosen){opacity:.42; filter:saturate(.55)}
+  .tending-chosen{margin-top:4px; padding:16px 20px; background:#eef3e6; border:1.5px solid var(--moss); border-radius:16px;
+    font-size:1.08rem; min-height:60px; display:flex; align-items:center}
+  .tending-chosen .empty{color:var(--ink-faint); font-style:italic}
+  .tending-chosen b{font-family:var(--font-head); font-size:1.4rem; color:var(--moss-deep)}
+
+  /* ---------- screen 7 seasons (feelings wheel → season; scenes slot in like calm/anxiety) ---------- */
+  .season-stage{position:relative; margin:18px 0; border-radius:18px; overflow:hidden; box-shadow:var(--shadow);
+    width:min(94vw,1040px); margin-left:50%; transform:translateX(-50%); aspect-ratio:2 / 1;
+    background:linear-gradient(#cfe3f2,#e9f1ea)}
+  @media(max-width:600px){.season-stage{width:100%; margin-left:0; transform:none}}
+  .season-img{position:absolute; inset:0; width:100%; height:100%; object-fit:cover; opacity:0; transition:opacity .6s ease}
+  .season-img.show{opacity:1}
+  .season-ph{position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:8px}
+  .season-ph .emoji{font-size:2.6rem}
+  .season-ph .nm{font-family:var(--font-head); font-size:1.5rem; color:var(--moss-deep)}
+  .season-say{text-align:center; font-size:1.12rem; min-height:1.5em; margin-top:14px; color:var(--ink)}
+  .season-say b{font-family:var(--font-head); font-size:1.5rem; color:var(--moss-deep)}
+  .feel-wheel{display:flex; flex-wrap:wrap; gap:9px; margin-top:10px; align-items:center}
+  .feel-wheel .fam{flex-basis:100%; font-family:var(--font-head); font-size:1.15rem; color:var(--moss-deep); margin-top:8px}
+  .feel-chip{font-family:inherit; font-size:.95rem; font-weight:700; border:1.5px solid var(--line); background:var(--card); color:var(--ink); border-radius:999px; padding:8px 15px; cursor:pointer; transition:all .2s var(--ease)}
+  .feel-chip:hover{border-color:var(--moss)}
+  .feel-chip.sel{background:var(--moss); color:#fff; border-color:var(--moss-deep)}
+  .season-pick{margin-top:20px; padding:16px 18px; background:var(--card); border:1.5px solid var(--line); border-radius:16px}
+  .season-pick .lbl{font-weight:700; color:var(--ink)}
+  .season-chips{display:flex; flex-wrap:wrap; gap:9px; margin-top:10px}
+  .season-chip{font-family:inherit; font-size:.95rem; font-weight:700; border:1.5px solid var(--line); background:#fff; color:var(--ink); border-radius:12px; padding:8px 14px; cursor:pointer; display:inline-flex; align-items:center; gap:6px; transition:all .2s var(--ease)}
+  .season-chip:hover{border-color:var(--moss)}
+  .season-chip.sel{background:#eef3e6; border-color:var(--moss-deep)}
+  /* season palette — feelings & seasons share it, so the colour shows the link */
+  .s-spring{--sc:#7fae5a; --scd:#5f8f44; --st:#fff}
+  .s-summer{--sc:#e0b24a; --scd:#bd8f2c; --st:#3b3320}
+  .s-autumn{--sc:#cf7a52; --scd:#a85d39; --st:#fff}
+  .s-winter{--sc:#7fa0c4; --scd:#5f82a8; --st:#fff}
+  .s-fallow{--sc:#a8a392; --scd:#857f6d; --st:#3b382f}
+  .feel-chip, .season-chip{border-color:var(--sc, var(--line))}
+  .feel-chip.sel, .season-chip.sel{background:var(--sc); border-color:var(--scd); color:var(--st)}
+
+  /* ---------- screen 9 garden map (assembles saved answers; prints clean) ---------- */
+  .garden-map{display:grid; grid-template-columns:1fr 1fr; gap:14px; margin:22px 0; padding:22px;
+    border:2px solid var(--soil); border-radius:18px; background:var(--card); box-shadow:var(--shadow)}
+  .map-zone{padding:14px 16px; border:1.5px solid var(--line); border-radius:14px; background:#fcfaf3}
+  .map-zone.map-tend{grid-column:1 / -1; background:#eef3e6; border-color:var(--moss)}
+  .map-zone h3{font-family:var(--font-head); font-size:1.35rem; color:var(--moss-deep); margin:0 0 8px}
+  .map-body{display:flex; flex-wrap:wrap; gap:7px; font-size:.92rem; align-items:center}
+  .map-body .tag{background:var(--sage); border-radius:999px; padding:5px 12px; font-weight:700; color:var(--ink)}
+  .map-body .tag.weed{background:#e6dcc6}
+  .map-body .tag.turned{background:#f3d9c4}
+  .map-body .none{color:var(--ink-faint); font-style:italic}
+  .map-body .lvl-track{flex:1; min-width:120px; height:14px; border-radius:7px; background:#e7e0cd; overflow:hidden}
+  .map-body .lvl-fill{height:100%; border-radius:7px; background:linear-gradient(90deg,var(--frost),#5f8ea4); transition:width .5s var(--ease)}
+  @media(max-width:560px){.garden-map{grid-template-columns:1fr}.map-zone.map-tend{grid-column:auto}}
+  @media print{
+    body *{visibility:hidden}
+    #gardenMap, #gardenMap *{visibility:visible}
+    #gardenMap{position:absolute; left:0; top:0; width:100%; box-shadow:none; border:2px solid #333}
+    #gardenMap .map-body .tag{background:transparent !important; border:1px solid #777}
+    #gardenMap .map-body .lvl-track{border:1px solid #777}
+    #gardenMap .map-body .lvl-fill{background:#777}
+  }
+  .weedrow{display:flex; align-items:center; gap:10px; flex-wrap:wrap; padding:10px 0; border-bottom:1px solid var(--line)}
+  .weedrow:last-child{border-bottom:none}
+  .weedlabel{font-weight:700; flex:1 1 150px}
+  .weedlabel .fate{font-weight:700; font-size:.8rem; color:var(--moss-deep); margin-left:8px; font-style:italic}
+  .weedacts{display:flex; gap:6px; flex-wrap:wrap}
+  .wact{font-family:inherit; font-size:.82rem; font-weight:700; border:1.5px solid var(--line); background:var(--card); color:var(--ink); border-radius:999px; padding:6px 12px; cursor:pointer; transition:all .2s var(--ease)}
+  .wact:hover{border-color:var(--moss); transform:translateY(-1px)}
+  .wact.on{background:var(--moss); border-color:var(--moss); color:#fff}
+  .weedrm{background:none; border:none; color:var(--ink-faint); cursor:pointer; font-weight:700; font-size:1rem; padding:4px 6px}
+  .weedrm:hover{color:var(--alarm)}
+
+  /* ---------- the bear (threat the alarm reacts to) ---------- */
+  .scribble{fill:none; stroke:var(--ink-soft); stroke-width:1.8; stroke-linecap:round}
+  .rough{filter:url(#rough)}
+  .bear-stage{display:grid; grid-template-columns:.8fr 1fr; gap:26px; align-items:center; margin:18px 0 4px}
+  @media(max-width:600px){.bear-stage{grid-template-columns:1fr}}
+  .bear-art{text-align:center}
+  .bear-art svg{height:clamp(150px,24vw,210px); width:auto; max-width:100%; display:block; margin:0 auto}
+  .bear-art img.bear-img{width:100%; max-width:440px; height:auto; display:block; margin:0 auto}
+  .slot-note{display:block; margin-top:6px; font-size:.72rem; font-family:ui-monospace,monospace; color:#a08f68}
+
+  /* ---------- buttons ---------- */
+  .row{display:flex; gap:14px; align-items:center; flex-wrap:wrap; margin-top:28px}
+  .btn{font-family:var(--font-body); font-weight:700; font-size:1.02rem; border:none; border-radius:999px; padding:15px 28px; cursor:pointer; background:var(--moss); color:#fff; box-shadow:0 10px 22px -12px var(--moss-deep); transition:transform .2s var(--ease), background .2s}
+  .btn:hover{transform:translateY(-2px); background:var(--moss-deep)}
+  .btn.ghost{background:transparent; color:var(--ink-soft); box-shadow:none; padding:15px 16px}
+  .btn.ghost:hover{color:var(--ink); background:transparent}
+
+  /* ---------- role cards (screen 2) ---------- */
+  .roles{display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-top:8px}
+  @media(max-width:600px){.roles{grid-template-columns:1fr}}
+  .role{border:1.5px solid var(--line); background:var(--card); border-radius:18px; padding:16px 18px; cursor:pointer; transition:border-color .2s, transform .2s var(--ease)}
+  .role:hover{border-color:var(--moss); transform:translateY(-2px)}
+  .role h3{font-family:var(--font-head); font-size:1.5rem; margin:0 0 1px; display:flex; align-items:center; gap:8px}
+  .role h3 .role-ico{height:1.5em; width:auto; max-width:2.2em; flex:0 0 auto}
+  .role .who{font-size:.78rem; color:var(--ink-faint); font-weight:700; text-transform:uppercase; letter-spacing:.5px}
+  .role .desc{font-size:.94rem; color:var(--ink-soft); max-height:0; overflow:hidden; opacity:0; transition:max-height .45s var(--ease), opacity .3s, margin-top .3s; margin-top:0}
+  .role.open .desc{max-height:340px; opacity:1; margin-top:10px}
+  .role .desc p{margin:0 0 9px} .role .desc p:last-child{margin-bottom:0}
+  .role .desc .lbl2{font-weight:700; color:var(--moss-deep)}
+  .role .desc p:first-child .lbl2{color:#7b6cae}
+
+  /* ---------- the locked-out dynamic (screen 2) — STORM, not stillness ---------- */
+  .teach{margin-top:26px; border-left:4px solid var(--moss); background:rgba(255,255,255,.5); border-radius:0 16px 16px 0; padding:20px 24px}
+  .teach p{margin:0; font-size:1.08rem}
+  .demo{margin-top:18px; border:1.5px solid var(--line); border-radius:18px; padding:22px; text-align:center; background:var(--sage); transition:background .4s var(--ease), border-color .4s, box-shadow .2s}
+  .demo .state{font-family:var(--font-head); font-size:1.7rem; margin:6px 0}
+  .demo .sub{font-size:.96rem; color:var(--ink-soft)}
+  .demo.calm{background:#dde7d0; border-color:var(--sage)}
+  .demo.alarm{background:#f3ddd0; border-color:var(--alarm); animation:jangle .35s linear infinite}
+  .demo.alarm .state{color:#b3623c}
+  @keyframes jangle{0%,100%{transform:translate(0,0)}25%{transform:translate(-2px,1px)}50%{transform:translate(2px,-1px)}75%{transform:translate(-1px,-1px)}}
+  .demo .demo-btns{display:flex; gap:10px; justify-content:center; margin-top:14px; flex-wrap:wrap}
+  .demo-btn{font-family:inherit; font-weight:700; font-size:.92rem; border:1.5px solid rgba(0,0,0,.15); background:rgba(255,255,255,.7); color:var(--ink); border-radius:999px; padding:9px 16px; cursor:pointer; transition:transform .2s var(--ease)}
+  .demo-btn:hover{transform:translateY(-1px)}
+
+  /* ---------- naming step (screen 3) ---------- */
+  .chips{display:flex; flex-wrap:wrap; gap:9px; margin-top:14px; align-items:center}
+  .chips .chip-group{flex-basis:100%; font-family:var(--font-head); font-size:1.15rem; color:var(--moss-deep); margin-top:8px}
+  .chips .chip-group:first-child{margin-top:0}
+  .chip{font-family:inherit; font-size:.95rem; font-weight:700; border:1.5px solid var(--line); background:var(--card); color:var(--ink); border-radius:999px; padding:9px 15px; cursor:pointer; transition:all .2s var(--ease)}
+  .chip:hover{border-color:var(--moss); transform:translateY(-1px)}
+  .chip.sel{background:var(--moss); border-color:var(--moss); color:#fff}
+  .addrow{display:flex; gap:8px; margin-top:14px; max-width:420px}
+  .addrow input{flex:1; font-family:inherit; font-size:1rem; padding:11px 15px; border:1.5px solid var(--line); border-radius:14px; background:var(--card); color:var(--ink)}
+  .addrow input:focus{outline:none; border-color:var(--moss)}
+  .addrow button{font-family:inherit; font-weight:700; border:1.5px solid var(--moss); background:var(--moss); color:#fff; border-radius:14px; padding:0 18px; cursor:pointer}
+  .yours{margin-top:22px; padding:18px 20px; background:var(--card); border:1.5px solid var(--line); border-radius:18px; min-height:64px}
+  .yours .lbl{font-family:var(--font-head); font-size:1.3rem; color:var(--moss-deep)}
+  .yours .empty{color:var(--ink-faint); font-style:italic}
+  .yours .picked{display:flex; flex-wrap:wrap; gap:8px; margin-top:8px}
+  .yours .picked span{background:var(--sage); border-radius:999px; padding:6px 12px 6px 14px; font-size:.9rem; font-weight:700; display:inline-flex; align-items:center; gap:8px}
+  .yours .picked b{cursor:pointer; color:var(--moss-deep); font-weight:700}
+
+  /* ---------- coach note (live session) — expands gently, no jolt ---------- */
+  .coach-note{
+    max-height:0; overflow:hidden; opacity:0; margin-top:0;
+    transition:max-height .45s var(--ease), opacity .35s, margin-top .35s;
+    border-radius:16px; background:#eef2e6; border:1.5px dashed var(--moss);
+  }
+  body.coach-on .coach-note{max-height:260px; opacity:1; margin-top:24px}
+  .coach-note .inner{padding:16px 20px}
+  .coach-note .tag{font-family:var(--font-head); font-size:1.25rem; color:var(--moss-deep); display:flex; align-items:center; gap:7px}
+  .coach-note p{margin:.2em 0 0; font-size:.98rem; color:var(--ink-soft)}
+  /* make the toggle's effect obvious: a persistent ribbon + a one-time pulse */
+  .coach-ribbon{max-height:0; overflow:hidden; opacity:0; transition:max-height .4s var(--ease), opacity .35s; background:#e6efdb; border-bottom:1.5px solid var(--moss)}
+  body.coach-on .coach-ribbon{max-height:64px; opacity:1}
+  .coach-ribbon .inner{padding:11px 18px; text-align:center; font-weight:700; font-size:.92rem; color:var(--moss-deep); display:flex; gap:8px; align-items:center; justify-content:center}
+  .coach-note.flash{animation:coachflash 1.4s var(--ease) 1}
+  @keyframes coachflash{0%{box-shadow:0 0 0 0 rgba(111,143,94,.55)}100%{box-shadow:0 0 0 14px rgba(111,143,94,0)}}
+
+  /* ---------- stub screens (4-9) ---------- */
+  .stub{text-align:center; padding-top:18px}
+  .stub .seed{font-size:2.4rem}
+  .stub .teaser{max-width:46ch; margin:12px auto 0; font-size:1.12rem}
+  .stub .note{margin-top:20px; font-style:italic; color:var(--ink-faint); font-size:.95rem}
+
+  /* ---------- progress: a row of growing leaves ---------- */
+  .progress{display:flex; justify-content:center; align-items:flex-end; gap:clamp(4px,1.4vw,12px); padding:10px clamp(12px,4vw,40px) 34px; flex-wrap:wrap}
+  .pleaf{background:none; border:none; cursor:pointer; padding:4px; line-height:0; transition:transform .3s var(--ease)}
+  .pleaf .leaf-ico{width:clamp(18px,4.5vw,26px); height:auto; display:block;
+    opacity:.30; filter:grayscale(.55); transition:opacity .3s, filter .3s}
+  .pleaf.done .leaf-ico{opacity:1; filter:none}
+  .pleaf.current{transform:translateY(-3px) scale(1.2)}
+  .pleaf.current .leaf-ico{opacity:1; filter:saturate(1.3) brightness(1.12) drop-shadow(0 2px 3px rgba(84,113,62,.4))}
+
+  :focus-visible{outline:3px solid var(--moss); outline-offset:3px; border-radius:6px}
+
+  @media(prefers-reduced-motion:reduce){
+    *{animation:none !important; transition:opacity .3s ease, background .3s ease !important}
+    /* alarm still reads as 'too much' without motion: harsh edge + colour carry it */
+    .demo.alarm{box-shadow:0 0 0 3px var(--alarm)}
+  }
+
+  /* ---------- the sundial casts its weather over the garden (listens for `sundial:select`) ----------
+     AuDHD-calm: opacity-only, slow (3–8s), no flashing. All motion dies under prefers-reduced-motion
+     (global rule above) and the words on the caption carry the meaning instead. */
+  .scene-stage{position:relative}
+  .weather-cast{position:absolute; inset:0; z-index:40; pointer-events:none; overflow:hidden;
+    border-radius:18px; opacity:0; transition:opacity 1.1s ease}
+  .weather-cast.on{opacity:1}
+  /* a faint wash of the dial's own hue, so the cast stays continuous with the sundial */
+  .weather-cast .wash{position:absolute; inset:0; background:var(--cast-hue,transparent); opacity:.14;
+    mix-blend-mode:multiply}
+  /* sun — a soft warm glow that breathes, never glares */
+  .weather-cast .w-sun{position:absolute; left:50%; top:34%; width:62%; height:62%; transform:translate(-50%,-50%);
+    border-radius:50%; background:radial-gradient(circle, rgba(255,214,120,.55), rgba(255,214,120,0) 68%);
+    animation:cast-breathe 6.5s ease-in-out infinite}
+  /* rain / cold — thin soft streaks, low opacity, unhurried */
+  .weather-cast .streak{position:absolute; top:-14%; width:2px; height:46px; border-radius:2px; opacity:.5}
+  .weather-cast .w-rain .streak{background:linear-gradient(rgba(70,140,200,0),rgba(70,140,200,.6));
+    animation:cast-fall 3.4s linear infinite}
+  .weather-cast .w-cold .streak{background:linear-gradient(rgba(150,180,210,0),rgba(150,180,210,.55));
+    transform:rotate(16deg); animation:cast-fall 2.8s linear infinite}
+  .weather-cast .w-cold .chill{position:absolute; inset:0; background:rgba(180,205,225,.20);
+    animation:cast-drift 8s ease-in-out infinite}
+  /* fog — a low drifting haze that softens the view */
+  .weather-cast .w-fog{position:absolute; inset:0; background:
+      radial-gradient(120% 60% at 30% 70%, rgba(225,225,210,.55), transparent 60%),
+      radial-gradient(120% 60% at 70% 80%, rgba(220,225,205,.45), transparent 60%);
+    animation:cast-drift 7.5s ease-in-out infinite}
+  /* storm — a darkening that swells and eases (a thunderhead passing), NOT a strobe */
+  .weather-cast .w-storm{position:absolute; inset:0; background:
+      radial-gradient(140% 90% at 50% 0%, rgba(40,38,46,.42), rgba(40,38,46,0) 62%);
+    animation:cast-breathe 5.5s ease-in-out infinite}
+  /* flash — the briefest weather: one soft swell, then handed on (JS clears it) */
+  .weather-cast .w-flash{position:absolute; inset:0; background:rgba(255,245,225,.5);
+    animation:cast-flash 2.4s ease-in-out 1}
+  /* climate (Seeking / Care) — steady, doesn't roll through */
+  .weather-cast .w-seeking{position:absolute; inset:0; background:
+      radial-gradient(120% 110% at 50% 12%, rgba(120,200,150,.34), rgba(120,200,150,0) 70%)}
+  .weather-cast .w-care{position:absolute; left:0; right:0; top:46%; height:30%; background:
+      linear-gradient(rgba(95,200,200,0), rgba(95,200,200,.30), rgba(95,200,200,0))}
+  /* sensation → place glows (positions are placeholders — see TODO in JS) */
+  .place-glow{position:absolute; width:34%; height:30%; transform:translate(-50%,-50%); border-radius:50%;
+    background:radial-gradient(circle, var(--glow,rgba(255,255,255,.5)), transparent 66%);
+    opacity:0; animation:cast-glow 4.5s ease-in-out infinite}
+  .place-glow.full{width:108%; height:108%; left:50%; top:50%}
+  /* the caption — a small parchment note naming the weather + where it lands; carries the words */
+  .cast-note{position:absolute; left:50%; bottom:12px; transform:translateX(-50%); z-index:42;
+    max-width:min(92%,560px); pointer-events:auto; background:rgba(251,247,238,.94);
+    border:1.5px solid var(--line); border-radius:14px; padding:9px 13px; box-shadow:var(--shadow);
+    font-size:.92rem; color:var(--ink); text-align:center; line-height:1.4}
+  .cast-note .w-name{font-family:var(--font-head); font-size:1.18rem; color:var(--moss-deep); display:block}
+  .cast-note .w-where{color:var(--ink-soft); font-size:.84rem; margin-top:1px}
+  .cast-note .w-pass{font-style:italic; color:var(--ink-soft); margin-top:4px; display:block}
+  .cast-note .w-move{margin-top:7px; border:1.5px solid var(--moss); background:none; color:var(--moss-deep);
+    font-family:inherit; font-size:.84rem; font-weight:700; border-radius:999px; padding:4px 12px; cursor:pointer}
+  .cast-note .w-move:hover{background:#eef3e6}
+  @keyframes cast-breathe{0%,100%{opacity:.5}50%{opacity:.9}}
+  @keyframes cast-fall{0%{transform:translateY(-40px)}100%{transform:translateY(118%)}}
+  @keyframes cast-drift{0%,100%{transform:translateX(-5%)}50%{transform:translateX(5%)}}
+  @keyframes cast-glow{0%,100%{opacity:.30}50%{opacity:.62}}
+  @keyframes cast-flash{0%{opacity:0}28%{opacity:.5}100%{opacity:0}}
+  @media(prefers-reduced-motion:reduce){
+    /* stillness + a steady soft tint; the caption words do the work */
+    .weather-cast .w-sun,.weather-cast .streak,.weather-cast .w-cold .chill,.weather-cast .w-fog,
+    .weather-cast .w-storm,.weather-cast .w-flash,.place-glow{animation:none !important}
+    .place-glow{opacity:.42}
+    .weather-cast .streak{display:none}
+  }
+
+  /* ---------- worksheet / print scaffold (full garden-map is screen 9) ---------- */
+  @media print{
+    header .coach-toggle, .progress, .row, .demo-btns, .slot{display:none !important}
+    .screen{display:block !important; page-break-after:always; max-width:none}
+    body{background:#fff}
+    .weather-cast{display:none !important}
+  }
+</style>
+</head>
+<body>
+  <header>
+    <div class="wordmark"><span class="leaf" aria-hidden="true"></span> the garden</div>
+    <label class="coach-toggle">
+      <input type="checkbox" id="coachToggle">
+      <span class="switch" aria-hidden="true"></span>
+      Coach mode
+    </label>
+  </header>
+
+  <div class="coach-ribbon" id="coachRibbon" aria-live="polite"><div class="inner">🌱 Coach mode on — facilitator prompts are showing on each step</div></div>
+
+  <main>
+    <!-- ===== 1 · WELCOME / THE ONE IDEA ===== -->
+    <section class="screen active" data-screen="0" aria-label="Welcome">
+      <p class="eyebrow">a place to tend</p>
+      <h1>You tend the conditions,<br>not the thoughts.</h1>
+      <div class="artslot">
+        <img class="art-img" src="assets/calm-garden.png" alt="Your garden: a potting shed, a gardener, a sundial, planting beds and a boundary wall with a gate">
+        <div class="slot hero">
+          <span class="ico">🌿</span><span class="nm">[ hero — wide establishing garden ]</span>
+          <span class="sp">~720×360 · PNG/SVG · drop into assets/hero-garden.png</span>
+        </div>
+      </div>
+      <p class="lede">You can't argue a frost into spring, or order a seed to hurry. But you can learn to <strong>read your garden</strong> — the weather, the soil, what's blooming and what's gone over — and tend the conditions that let it grow.</p>
+      <p class="muted" style="margin-top:14px">This was never about controlling your mind. It's about becoming its gardener.</p>
+      <div class="row"><button class="btn" data-go="1">Step into the garden →</button></div>
+      <p class="fine" style="margin-top:20px">Go gently — one screen at a time. Nothing here is a test, and there are no wrong answers.</p>
+      <div class="coach-note"><div class="inner"><span class="tag">🌱 For the coach</span><p>Set the frame before they start: <em>they are the gardener, not the weather.</em> This isn't diagnosis — it's a kinder way to read themselves. Let them set the pace.</p></div></div>
+    </section>
+
+    <!-- ===== 2 · MEET YOUR GARDEN ===== -->
+    <section class="screen" data-screen="1" aria-label="Welcome To Your Garden">
+      <p class="eyebrow">first, a quick tour</p>
+      <h2>Welcome To Your Garden</h2>
+      <p class="lede">Four things keep a garden — and each one is a part of you. Tap to meet them.</p>
+
+      <div class="scene-stage" id="sceneStage" role="img" aria-label="Your garden: the gardener, the alarm, the climate and water, and the potting shed">
+        <div class="slot scene" id="scenePlaceholder">
+          <span class="ico">🏡</span><span class="nm">[ garden scene loading… ]</span>
+          <span class="sp">assets/garden-scene.svg · tap a part to meet it</span>
+        </div>
+      </div>
+
+      <div class="roles" id="roles">
+        <button class="role" data-role>
+          <h3>🧑‍🌾 The Gardener</h3><span class="who">prefrontal cortex</span>
+          <div class="desc">
+            <p><span class="lbl2">🧠 In your brain</span> — the thinking, deciding part. It plans, weighs things up and calms the rest down — and it's the <em>first to go quiet</em> when you're overwhelmed.</p>
+            <p><span class="lbl2">🌿 In the garden</span> — the gardener: the only part that tends on purpose, and the first to step back when things get loud.</p>
+          </div>
+        </button>
+        <button class="role" data-role>
+          <h3>⚠️ The Alarm</h3><span class="who">amygdala</span>
+          <div class="desc">
+            <p><span class="lbl2">🧠 In your brain</span> — your threat-detector. <em>Faster than thought</em>, and it can't tell a real danger from an imagined one — so it sometimes fires when you're not actually in danger.</p>
+            <p><span class="lbl2">🌿 In the garden</span> — the alarm: when it sounds it grabs the controls and flips everything to survival.</p>
+          </div>
+        </button>
+        <button class="role" data-role>
+          <h3>🌦️ Climate &amp; Water</h3><span class="who">hypothalamus</span>
+          <div class="desc">
+            <p><span class="lbl2">🧠 In your brain</span> — runs your body's settings: heart rate, breath, temperature, stress hormones. <em>Steady the body here and the mind follows.</em></p>
+            <p><span class="lbl2">🌿 In the garden</span> — the weather: you change the garden by changing its conditions, not by arguing with it.</p>
+          </div>
+        </button>
+        <button class="role" data-role>
+          <h3>🌰 The Potting Shed</h3><span class="who">hippocampus</span>
+          <div class="desc">
+            <p><span class="lbl2">🧠 In your brain</span> — files and recalls memories. It brings up what happened before, which <em>shapes how safe a moment feels now</em>.</p>
+            <p><span class="lbl2">🌿 In the garden</span> — the potting shed: the record of seasons, so you don't start from nothing each spring.</p>
+          </div>
+        </button>
+      </div>
+
+      <div class="teach">
+        <p>The one thing to hold onto: <strong>when the alarm goes off, the gardener gets locked out.</strong> You can't prune with the alarm blaring. So we don't fight the alarm or reason with it — we calm the weather first, and <em>then</em> the gardener can get back to work.</p>
+      </div>
+
+      <div class="demo calm" id="demo">
+        <div class="state" id="demoState">🌱 The gardener is tending</div>
+        <div class="sub" id="demoSub">Mild weather. There's room to think, choose, and care for things.</div>
+        <div class="demo-btns">
+          <button class="demo-btn" data-demo="alarm">See the alarm trip →</button>
+          <button class="demo-btn" data-demo="calm">Calm the weather ↺</button>
+        </div>
+      </div>
+
+      <div class="row">
+        <button class="btn ghost" data-go="0">← Back</button>
+        <button class="btn" data-go="2">Next: what trips your alarm? →</button>
+      </div>
+      <div class="coach-note"><div class="inner"><span class="tag">🌱 For the coach</span><p>Check the locked-out idea lands. Ask: <em>"Can you remember a time the alarm grabbed the controls and you just couldn't think straight?"</em> Normalise it — that's the brain working as designed, not a failing.</p></div></div>
+    </section>
+
+    <!-- ===== 3 · THE ALARM ===== -->
+    <section class="screen" data-screen="2" aria-label="The alarm">
+      <p class="eyebrow">your garden, right now</p>
+      <h2>What trips your alarm?</h2>
+      <div class="bear-stage">
+        <div class="bear-art" id="bearArt">
+          <svg viewBox="0 0 300 200" role="img" aria-label="A bear at the edge of the garden">
+            <defs><filter id="rough" x="-6%" y="-6%" width="112%" height="112%"><feTurbulence type="fractalNoise" baseFrequency="0.016" numOctaves="2" seed="5" result="n"/><feDisplacementMap in="SourceGraphic" in2="n" scale="2.4"/></filter></defs>
+            <g class="rough">
+              <path d="M44,120 C52,112 56,110 62,110 C70,108 74,102 78,96 C80,90 84,86 88,86 C90,78 100,76 104,82 C108,86 110,90 114,94 C120,98 126,92 134,82 C140,72 146,66 156,66 C190,68 222,80 244,92 C258,98 268,108 268,122 C268,140 264,158 262,172 C262,180 262,184 262,184 L234,184 C234,176 236,168 236,160 C230,166 222,170 214,170 C188,174 158,175 130,173 C130,177 129,181 128,184 L102,184 C103,176 104,170 104,166 C92,158 82,150 76,142 C64,138 54,134 48,130 C46,127 45,123 44,120 Z"
+                    fill="#a3886a" stroke="#3b4136" stroke-width="2.4" stroke-linejoin="round"/>
+              <path class="scribble" d="M92,84 C95,80 100,80 102,84"/>
+              <ellipse cx="65" cy="107" rx="3" ry="3.8" fill="#3b4136"/>
+              <ellipse cx="47" cy="117" rx="4" ry="3.2" fill="#3b4136"/>
+              <path class="scribble" d="M48,122 C54,126 61,127 67,125"/>
+              <path class="scribble" d="M156,74 C166,90 170,108 168,128"/>
+              <path class="scribble" d="M246,102 C254,118 254,140 250,160"/>
+            </g>
+          </svg>
+          <span class="slot-note">stand-in → drop assets/bear-at-treeline.svg (or .png)</span>
+        </div>
+        <div>
+          <p class="lede">Picture a bear at the edge of your garden. Your alarm doesn't wait to check it's really there — a shadow at the treeline is enough. Most days it's only the wind in the branches… yet the alarm fires all the same.</p>
+          <p class="muted" style="margin-top:12px">Everyone's alarm has its own bears. Naming yours won't switch it off — but a gardener who knows what spooks them can be ready.</p>
+        </div>
+      </div>
+
+      <p class="muted" style="margin-top:18px; font-weight:700">Tap any that ring true — and add your own.</p>
+      <div class="chips" id="alarmChips"></div>
+      <div class="addrow">
+        <input type="text" id="alarmInput" placeholder="Add your own…" aria-label="Add your own trigger">
+        <button id="alarmAdd">Add</button>
+      </div>
+
+      <div class="yours">
+        <span class="lbl">Your triggers</span>
+        <div id="alarmPicked" class="picked"><span class="empty" id="alarmEmpty">Nothing chosen yet — there's no rush.</span></div>
+      </div>
+
+      <p class="muted" style="margin-top:18px">These are yours to <em>know</em>, not to fix. Knowing what trips your alarm is half of tending the garden.</p>
+
+      <div class="row">
+        <button class="btn ghost" data-go="1">← Back</button>
+        <button class="btn" data-go="3">Next: what blooms easily →</button>
+      </div>
+      <div class="coach-note"><div class="inner"><span class="tag">🌱 For the coach</span><p>Invite them to notice <em>where the alarm shows up in the body first</em> — chest, gut, throat, jaw? The body usually knows before the thought does. No need to solve anything here; just name it.</p></div></div>
+    </section>
+
+    <!-- ===== 4-9 · STUBS (not yet planted) ===== -->
+    <section class="screen" data-screen="3" aria-label="What blooms easily">
+      <p class="eyebrow">the hopeful part</p>
+      <h2>What blooms easily</h2>
+      <p class="lede">Name a strength, a special interest, a thing that grows in you without much coaxing — and plant it. Watch the bed fill with <em>your</em> wildflowers.</p>
+
+      <div class="bloom-stage" id="bloomStage" role="img" aria-label="Your flowerbed">
+        <div class="bed-soil" aria-hidden="true"></div>
+      </div>
+
+      <p class="muted" style="margin-top:14px; font-weight:700">Tap any that ring true — and add your own.</p>
+      <div class="chips" id="bloomChips"></div>
+      <div class="addrow">
+        <input type="text" id="bloomInput" placeholder="Add your own…" aria-label="Add your own strength">
+        <button id="bloomAdd">Plant</button>
+      </div>
+
+      <div class="yours">
+        <span class="lbl">Your blooms</span>
+        <div id="bloomPicked" class="picked"><span class="empty" id="bloomEmpty">Nothing planted yet — there's no rush.</span></div>
+      </div>
+
+      <p class="muted" style="margin-top:18px">These grow in you whether you tend them or not — but they grow <em>best</em> when you give them room and light.</p>
+
+      <div class="row">
+        <button class="btn ghost" data-go="2">← Back</button>
+        <button class="btn" data-go="4">Next: the weeds →</button>
+      </div>
+      <div class="coach-note"><div class="inner"><span class="tag">🌱 For the coach</span><p>If they stall, prompt gently: <em>"What do people come to you for?"</em> or <em>"What could you happily lose hours in?"</em> Special interests count — they're often the richest blooms. No strength is too small to plant.</p></div></div>
+    </section>
+    <section class="screen" data-screen="4" aria-label="The weeds">
+      <p class="eyebrow">the honest part</p>
+      <h2>The weeds</h2>
+      <p class="lede">Name a recurring weed-thought — the one that keeps coming back. Then decide, gently, what to do with it. A weed is just a plant in the wrong place… and sometimes not even that.</p>
+
+      <div class="bloom-stage" id="weedStage" role="img" aria-label="Your bed, with weeds">
+        <div class="bed-soil" aria-hidden="true"></div>
+      </div>
+
+      <p class="muted" style="margin-top:14px; font-weight:700">Tap any that ring true — and add your own.</p>
+      <div class="chips" id="weedChips"></div>
+      <div class="addrow">
+        <input type="text" id="weedInput" placeholder="Add your own…" aria-label="Add your own weed-thought">
+        <button id="weedAdd">Name it</button>
+      </div>
+
+      <div class="yours">
+        <span class="lbl">Your weeds</span>
+        <div id="weedPicked"><span class="empty" id="weedEmpty">No weeds named yet — there’s no rush.</span></div>
+        <p class="fine" style="margin-top:12px"><b>Pull</b> — challenge it or let it go · <b>Live with</b> — it stays, but you tend around it · <b>Let it turn</b> — it was never really a weed (it becomes a bloom)</p>
+      </div>
+
+      <div class="row">
+        <button class="btn ghost" data-go="3">← Back</button>
+        <button class="btn" data-go="5">Next: the bucket →</button>
+      </div>
+      <div class="coach-note"><div class="inner"><span class="tag">🌱 For the coach</span><p>Go slow here. Some weeds genuinely pull out; some have roots too deep to fight, and peace comes from tending <em>around</em> them. And some — over-thinking, sensitivity, intensity — were never weeds at all. Let them choose; there’s no right answer.</p></div></div>
+    </section>
+    <section class="screen" data-screen="5" aria-label="The bucket">
+      <p class="eyebrow">the part you carry</p>
+      <h2>The bucket</h2>
+      <p class="lede">Everything you carry collects in the bucket — it fills all day, and it has to go <em>somewhere</em>. The <strong>watering can</strong> is how you tip it out: poured onto the garden, the load isn't wasted — <em>the bed drinks it</em>. Never tip it and the bucket just overflows. <em>(That's rumination; a good night's sleep is the overnight pour.)</em></p>
+
+      <div class="bucket-stage" id="bucketStage" role="img" aria-label="Your bucket, the watering can, and the garden bed">
+        <div class="bed-band" aria-hidden="true"></div>
+        <div class="bucket" id="bucketEl">
+          <div class="bucket-handle"></div>
+          <div class="bucket-body"><div class="bucket-water" id="bucketWater"></div></div>
+          <div class="bucket-rim"></div>
+        </div>
+        <div class="pour-stream" id="pourStream" aria-hidden="true"></div>
+        <img class="watering-can" id="wcan" src="assets/water-can-icon.png" alt="">
+      </div>
+
+      <p class="muted" style="margin-top:14px; font-weight:700">What fills your bucket? Tap any that ring true — and add your own.</p>
+      <div class="chips" id="fillChips"></div>
+      <div class="addrow">
+        <input type="text" id="fillInput" placeholder="Add your own…" aria-label="Add what fills your bucket">
+        <button id="fillAdd">Add to bucket</button>
+      </div>
+      <div class="yours">
+        <span class="lbl">In your bucket</span>
+        <div id="fillPicked" class="picked"><span class="empty" id="fillEmpty">Empty for now — there's no rush.</span></div>
+      </div>
+
+      <p class="muted" style="margin-top:20px; font-weight:700">And how do you tip it out — onto the garden? Your watering can: the healthy ways you let the load move.</p>
+      <div class="chips" id="pourChips"></div>
+      <div class="addrow">
+        <input type="text" id="pourInput" placeholder="Add your own…" aria-label="Add a way you tip the bucket out">
+        <button id="pourAdd">Add</button>
+      </div>
+      <div class="yours">
+        <span class="lbl">Your ways to pour</span>
+        <div id="pourPicked" class="picked"><span class="empty" id="pourEmpty">None named yet.</span></div>
+      </div>
+
+      <div class="row" style="justify-content:center; margin-top:18px">
+        <button class="btn" id="tipBtn" type="button">💧 Tip the watering can onto the garden</button>
+      </div>
+      <p class="muted" id="tipMsg" style="text-align:center; min-height:1.4em"></p>
+
+      <div class="row">
+        <button class="btn ghost" data-go="4">← Back</button>
+        <button class="btn" data-go="6">Next: your season →</button>
+      </div>
+      <div class="coach-note"><div class="inner"><span class="tag">🌱 For the coach</span><p>The bucket isn't the problem — <em>not tipping it</em> is. A full bucket is normal; the question is where it pours. If they can't name a pour, that's the work: rest, movement, talking, making something, a good night's sleep. Rumination is the bucket that overflows because it's never tipped.</p></div></div>
+    </section>
+    <section class="screen" data-screen="6" aria-label="Your season now">
+      <p class="eyebrow">the sustained climate</p>
+      <h2>Your season right now</h2>
+      <p class="lede">The alarm was the <em>weather</em> — a passing moment. The <strong>season</strong> is the longer tone: the climate you've been living in lately. Name how you feel and your garden will show you its season — including <em>fallow</em>, when the kindest thing is to rest and wait.</p>
+
+      <div class="season-stage" id="seasonStage" role="img" aria-label="Your garden's season">
+        <img class="season-img" id="seasonImg" alt="">
+        <div class="season-ph" id="seasonPh"><span class="emoji">🍃</span><span class="nm">Name a feeling, and your season appears</span></div>
+      </div>
+
+      <p class="season-say" id="seasonSay" aria-live="polite"></p>
+
+      <p class="muted" style="margin-top:10px; font-weight:700">How have you been feeling? Tap what fits — even one.</p>
+      <div class="feel-wheel" id="feelWheel"></div>
+
+      <div class="season-pick" id="seasonPick" hidden>
+        <span class="lbl">Does that feel right? You can choose a different season.</span>
+        <div class="season-chips" id="seasonChips"></div>
+      </div>
+
+      <div class="row">
+        <button class="btn ghost" data-go="5">← Back</button>
+        <button class="btn" data-go="7">Next: your tending plan →</button>
+      </div>
+      <div class="coach-note"><div class="inner"><span class="tag">🌱 For the coach</span><p>The wheel does real work — naming feelings is hard (emotional granularity is often low when we're ND or overwhelmed). Let the feeling <em>suggest</em> the season, never diagnose it: <em>"Does that feel right? You can choose a different one."</em> And hold <strong>fallow</strong> gently — it's resting, not failing. Nothing in this garden ever dies.</p></div></div>
+    </section>
+    <section class="screen" data-screen="7" aria-label="Your tending plan">
+      <p class="eyebrow">one small act of care</p>
+      <h2>Your tending plan</h2>
+      <p class="lede">Choose <strong>one</strong> thing to tend this week. Just one — a gardener doesn't do everything at once, and a small act done is worth more than a long list undone. The rest can wait; they're not going anywhere.</p>
+
+      <div class="tending-grid" id="tendingGrid" role="listbox" aria-label="Pick one thing to tend this week"></div>
+
+      <div class="tending-chosen" id="tendingChosen" aria-live="polite">
+        <span class="empty">Nothing chosen yet — take your time.</span>
+      </div>
+
+      <div class="row">
+        <button class="btn ghost" data-go="6">← Back</button>
+        <button class="btn" data-go="8">Next: your garden map →</button>
+      </div>
+      <div class="coach-note"><div class="inner"><span class="tag">🌱 For the coach</span><p>Hold the line on <em>one</em>. The instinct is to fix everything; the skill is choosing the single condition that makes the most difference, and letting the rest be. Tie it to what they named — a weed to tend around, a pour for the bucket, light or rest. Doable beats ambitious.</p></div></div>
+    </section>
+    <section class="screen" data-screen="8" aria-label="Garden map">
+      <p class="eyebrow">your garden, today</p>
+      <h2>Your garden map</h2>
+      <p class="lede">Everything you named, gathered in one place. A garden is never finished — this is just how yours looks today. Keep it, print it, bring it back next time.</p>
+
+      <div class="garden-map" id="gardenMap">
+        <div class="map-zone" data-zone="alarm">
+          <h3>🚨 What trips your alarm</h3>
+          <div class="map-body" id="mapAlarm"></div>
+        </div>
+        <div class="map-zone" data-zone="blooms">
+          <h3>🌼 What blooms easily</h3>
+          <div class="map-body" id="mapBlooms"></div>
+        </div>
+        <div class="map-zone" data-zone="weeds">
+          <h3>🌱 Your weeds</h3>
+          <div class="map-body" id="mapWeeds"></div>
+        </div>
+        <div class="map-zone" data-zone="bucket">
+          <h3>🪣 Your bucket</h3>
+          <div class="map-body" id="mapBucket"></div>
+        </div>
+        <div class="map-zone" data-zone="season">
+          <h3>🍃 Your season</h3>
+          <div class="map-body" id="mapSeason"></div>
+        </div>
+        <div class="map-zone map-tend" data-zone="tending">
+          <h3>💧 This week, you'll tend</h3>
+          <div class="map-body" id="mapTending"></div>
+        </div>
+      </div>
+
+      <div class="row no-print" style="justify-content:center; margin-top:6px">
+        <button class="btn" id="printBtn" type="button">🖨️ Print / save my garden</button>
+      </div>
+      <div class="row no-print">
+        <button class="btn ghost" data-go="7">← Back</button>
+        <button class="btn ghost" data-go="0">Start again ↺</button>
+      </div>
+    </section>
+  </main>
+
+  <!-- the wall — a quiet close-up; heals passively over tended sessions (never announced) -->
+  <div class="wall-close" id="wallClose" hidden>
+    <div class="wall-card">
+      <button class="wall-x" id="wallX" type="button" aria-label="Close">×</button>
+      <span class="wall-eyebrow">your boundary</span>
+      <img class="wall-img" id="wallStageImg" alt="The wall around your garden">
+      <p class="wall-copy" id="wallCopy"></p>
+    </div>
+  </div>
+
+  <nav class="progress" id="progress" aria-label="Your progress through the garden"></nav>
+
+<script>
+(function(){
+  "use strict";
+
+  /* ----- one state object (portable-via-link/export slots in here later) ----- */
+  var garden = { alarm:[], blooms:[], weeds:[], bucket:{fills:[],pours:[]}, season:null, tending:null,
+                 wall:{ integrity:0 } };  // the container: passive 0→1, drifts up a hair each tended session. Never shown, never a score.
+
+  var screens = Array.prototype.slice.call(document.querySelectorAll('.screen'));
+  var titles = ["Welcome","Your garden","Alarm","Blooms","Weeds","Bucket","Season","Tending plan","Garden map"];
+  var current = 0;
+
+  function reduced(){ return window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches; }
+
+  /* ----- silent resume (try/catch, non-authoritative) ----- */
+  function save(){ try{ localStorage.setItem('garden.v2', JSON.stringify(garden)); }catch(e){} }
+  function load(){ try{ var s=localStorage.getItem('garden.v2'); if(s) garden=Object.assign(garden, JSON.parse(s)); }catch(e){} }
+  load();
+
+  /* ----- progress: a row of leaves ----- */
+  var prog = document.getElementById('progress');
+  var leafSVG = '<img class="leaf-ico" src="assets/leaf-icon.png" alt="" aria-hidden="true">';
+  screens.forEach(function(_,i){
+    var b=document.createElement('button');
+    b.className='pleaf'; b.setAttribute('data-go',i);
+    b.setAttribute('aria-label','Go to: '+titles[i]);
+    b.innerHTML=leafSVG;
+    prog.appendChild(b);
+  });
+
+  function go(i){
+    i=Math.max(0,Math.min(screens.length-1,i));
+    current=i;
+    screens.forEach(function(s){ s.classList.toggle('active', +s.getAttribute('data-screen')===i); });
+    Array.prototype.forEach.call(prog.children,function(el){
+      var n=+el.getAttribute('data-go');
+      el.classList.toggle('done', n<i);
+      el.classList.toggle('current', n===i);
+      var ico=el.querySelector('.leaf-ico');
+      if(ico) ico.src = (n===i ? 'assets/current-leaf-icon.png' : 'assets/leaf-icon.png'); // orange = current
+    });
+    window.scrollTo({top:0, behavior: reduced()?'auto':'smooth'});
+    if(i===2) ensureBear();      // load the treeline bear
+    if(i===3) syncBlooms(Infinity);
+    if(i===4) syncWeeds(Infinity);
+    if(i===5) updateBucket();    // bucket water-level
+    if(i===6) initSeason();      // seasons (feelings wheel → season)
+    if(i===7) renderTending();   // tending plan
+    if(i===8){ renderMap(); nudgeWall(); }  // reaching the map = a tended session → wall heals a hair
+  }
+
+  /* ----- navigation + role cards + demo (event delegation) ----- */
+  document.addEventListener('click',function(e){
+    var g=e.target.closest('[data-go]'); if(g){ go(+g.getAttribute('data-go')); return; }
+    var wl=e.target.closest('[data-wall]'); if(wl){ openWall(); return; }
+    var r=e.target.closest('[data-role]'); if(r){ r.classList.toggle('open'); return; }
+    var d=e.target.closest('[data-demo]'); if(d){ setDemo(d.getAttribute('data-demo')); return; }
+  });
+
+  /* ----- screen 2: locked-out dynamic (STORM when alarm fires) ----- */
+  var demo=document.getElementById('demo'), demoState=document.getElementById('demoState'), demoSub=document.getElementById('demoSub');
+  function setDemo(state){
+    applyScene(state);
+    if(state==='alarm'){
+      demo.classList.remove('calm'); demo.classList.add('alarm');
+      demoState.textContent='⚠️ The alarm is sounding — gardener locked out';
+      demoSub.textContent='A shadow shifts at the treeline — bear! Everything floods to survival, fast and loud, before you’ve even looked. No room to prune or plan — that’s the alarm doing its job, not you failing.';
+    }else{
+      demo.classList.remove('alarm'); demo.classList.add('calm');
+      demoState.textContent='🌱 The gardener is back';
+      demoSub.textContent='The weather settles first — and only then can the gardener step in and tend again.';
+    }
+  }
+
+  /* ----- screen 2 scene: inline the SVG so its named layers are scriptable ----- */
+  /* (needs serving over http — file:// blocks fetch; localhost is fine) */
+  var sceneReady=false;
+  var PART_TO_ROLE={ gardner:0, calmalarm:1, alarmsounds:1, tap:2, bucket:2, watering_can:2, seedshed:3 };
+  function wireSceneParts(stage){
+    Object.keys(PART_TO_ROLE).forEach(function(id){
+      var el=stage.querySelector('#'+id);
+      if(!el) return;
+      el.classList.add('scene-part');
+      el.style.cursor='pointer';
+      el.addEventListener('click',function(){
+        var cards=document.querySelectorAll('#roles .role');
+        var card=cards[PART_TO_ROLE[id]];
+        if(card){ card.classList.add('open'); if(!reduced()) card.scrollIntoView({behavior:'smooth', block:'center'}); }
+      });
+    });
+  }
+  function applyScene(mode){
+    if(!sceneReady) return;
+    var stage=document.getElementById('sceneStage'); if(!stage) return;
+    var storm = mode==='alarm';
+    var svg=stage.querySelector('svg');
+    if(svg) svg.classList.toggle('storm', storm); // CSS darken = the weather turning (no clouds layer)
+    var clouds=stage.querySelector('#clouds');     // (absent in improved scene — harmless)
+    var sounds=stage.querySelector('#alarmsounds'); // ringing rays
+    var calm=stage.querySelector('#calmalarm');     // muted octagon
+    var gardener=stage.querySelector('#gardner');
+    /* clouds now drift/fade via CSS (.storm #clouds) — no display toggle */
+    if(sounds) sounds.style.display = storm ? '' : 'none';
+    if(calm)   calm.style.display   = storm ? 'none' : '';
+    if(gardener) gardener.style.opacity = storm ? '0' : '1'; // locked out / steps back
+  }
+
+  /* ----- card icons cloned from the scene art (so they match exactly) ----- */
+  var iconsBuilt=false;
+  var CARD_ICON=[['gardner'],['calmalarm'],['tap','bucket','watering_can'],['seedshed']];
+  var SVGNS='http://www.w3.org/2000/svg';
+  function cardIcon(stage, ids){
+    var x0=Infinity,y0=Infinity,x1=-Infinity,y1=-Infinity, nodes=[];
+    ids.forEach(function(id){
+      var el=stage.querySelector('#'+id); if(!el) return;
+      var bb; try{ bb=el.getBBox(); }catch(e){ return; }
+      if(!bb || (!bb.width && !bb.height)) return;
+      x0=Math.min(x0,bb.x); y0=Math.min(y0,bb.y);
+      x1=Math.max(x1,bb.x+bb.width); y1=Math.max(y1,bb.y+bb.height);
+      var c=el.cloneNode(true);
+      c.removeAttribute('id');
+      c.querySelectorAll('[id]').forEach(function(n){ n.removeAttribute('id'); });
+      c.style.display=''; c.style.opacity='1';
+      nodes.push(c);
+    });
+    if(!isFinite(x0) || !nodes.length) return null;
+    var w=x1-x0, h=y1-y0, pad=Math.max(w,h)*0.04;
+    var svg=document.createElementNS(SVGNS,'svg');
+    svg.setAttribute('viewBox',(x0-pad)+' '+(y0-pad)+' '+(w+pad*2)+' '+(h+pad*2));
+    svg.setAttribute('class','role-ico'); svg.setAttribute('aria-hidden','true');
+    nodes.forEach(function(n){ svg.appendChild(n); });
+    return svg;
+  }
+  function ensureCardIcons(){
+    if(iconsBuilt || !sceneReady) return;
+    var stage=document.getElementById('sceneStage'); if(!stage) return;
+    // need the scene visible for getBBox to return real geometry
+    var test=stage.querySelector('#seedshed');
+    if(!test) return;
+    var tb; try{ tb=test.getBBox(); }catch(e){ return; }
+    if(!tb || (!tb.width && !tb.height)) return; // screen 2 not visible yet
+    var cards=document.querySelectorAll('#roles .role h3');
+    CARD_ICON.forEach(function(ids,i){
+      var h3=cards[i]; if(!h3) return;
+      var ico=cardIcon(stage, ids); if(!ico) return;
+      var label=(h3.textContent||'').replace(/^\S+\s*/,'').trim(); // drop the leading emoji
+      h3.textContent='';
+      h3.appendChild(ico);
+      h3.appendChild(document.createTextNode(' '+label));
+    });
+    iconsBuilt=true;
+  }
+  function initScene(){
+    var stage=document.getElementById('sceneStage'); if(!stage) return;
+    fetch('assets/garden-scene.svg')
+      .then(function(r){ if(!r.ok) throw new Error('http '+r.status); return r.text(); })
+      .then(function(txt){
+        stage.innerHTML=txt;
+        var svg=stage.querySelector('svg');
+        if(svg){
+          svg.removeAttribute('width'); svg.removeAttribute('height');
+          // improved scene fills its artboard — show it whole
+          svg.setAttribute('viewBox','0 0 2080 1037');
+        }
+        wireSceneParts(stage);
+        sceneReady=true;
+        applyScene(demo.classList.contains('alarm') ? 'alarm' : 'calm');
+      })
+      .catch(function(){
+        var ph=document.getElementById('scenePlaceholder');
+        if(ph){
+          ph.querySelector('.nm').textContent='[ garden scene needs a local server ]';
+          ph.querySelector('.sp').textContent='run  python3 -m http.server  in this folder, then open via http://localhost — file:// can’t load the scene';
+        }
+      });
+  }
+
+  /* ----- screen 3: alarm naming ----- */
+  var common=["An unread message","A deadline","A change of plan","A social plan","Conflict","Money","A health worry","Too much noise","Being interrupted","The what-ifs"];
+  var chipsWrap=document.getElementById('alarmChips');
+  var picked=document.getElementById('alarmPicked'), emptyMsg=document.getElementById('alarmEmpty');
+
+  function renderChips(){
+    chipsWrap.innerHTML='';
+    common.forEach(function(label){
+      var b=document.createElement('button');
+      b.className='chip'+(garden.alarm.indexOf(label)>-1?' sel':'');
+      b.textContent=label;
+      b.addEventListener('click',function(){ toggle(label); });
+      chipsWrap.appendChild(b);
+    });
+  }
+  function toggle(label){
+    var i=garden.alarm.indexOf(label);
+    if(i>-1) garden.alarm.splice(i,1); else garden.alarm.push(label);
+    save(); renderChips(); renderPicked();
+  }
+  function renderPicked(){
+    if(!garden.alarm.length){ picked.innerHTML='<span class="empty">Nothing chosen yet — there’s no rush.</span>'; return; }
+    picked.innerHTML='';
+    garden.alarm.forEach(function(label){
+      var s=document.createElement('span');
+      s.innerHTML=label+' <b aria-label="remove" title="remove">✕</b>';
+      s.querySelector('b').addEventListener('click',function(){ toggle(label); });
+      picked.appendChild(s);
+    });
+  }
+  document.getElementById('alarmAdd').addEventListener('click',addCustom);
+  document.getElementById('alarmInput').addEventListener('keydown',function(e){ if(e.key==='Enter'){ e.preventDefault(); addCustom(); } });
+  function addCustom(){
+    var inp=document.getElementById('alarmInput'); var v=inp.value.trim();
+    if(v && garden.alarm.indexOf(v)===-1){ garden.alarm.push(v); save(); renderChips(); renderPicked(); }
+    inp.value='';
+  }
+
+  /* ----- screen 4: blooms (name a strength → plant a flower) ----- */
+  var BLOOM_GROUPS=[
+    {label:'Strengths', items:["Curiosity","Deep focus","Empathy","Creativity","Pattern-spotting","Honesty","Loyalty","Humour","Problem-solving","Big-picture thinking","Kindness"]},
+    {label:'Special interests', items:["A subject I love","Something I lose hours in","A topic I could talk about for hours","A thing I'm the go-to for","A hobby that absorbs me"]}
+  ];
+  var FLOWER_FILES=["flower1.svg","flower2.svg","flower3.svg","flower4.svg"];
+  var FALLBACK_FLOWER='<svg viewBox="0 0 24 30"><circle cx="12" cy="9" r="7" fill="#d98c5f"/><rect x="11" y="14" width="2" height="14" fill="#6f8f5e"/></svg>';
+  // bottom-anchored planting slots (% of the bed stage), along the soil band
+  var BLOOM_SLOTS=[{x:50,y:79},{x:33,y:81},{x:67,y:78},{x:20,y:80},{x:80,y:81},{x:42,y:77},
+                   {x:58,y:82},{x:12,y:79},{x:88,y:80},{x:26,y:78},{x:74,y:80},{x:50,y:84}];
+  var flowerMarkup=[];               // cropped, parallel to FLOWER_FILES
+  flowerMarkup[FLOWER_FILES.length]='<img src="assets/flower5bloom-icon.png" alt="">'; // flower5 (PNG bud/bloom pair)
+  var FLOWER_COUNT=FLOWER_FILES.length+1;
+  function hashStr(s){ s=String(s||''); var h=5381; for(var k=0;k<s.length;k++) h=((h<<5)+h+s.charCodeAt(k))|0; return Math.abs(h); }
+  function flowerFor(label){ return hashStr(label) % FLOWER_COUNT; } // stable per-strength, mixed (not a 1-2-3-4 cycle)
+  var bloomStageEl=document.getElementById('bloomStage');
+  var bloomChipsWrap=document.getElementById('bloomChips');
+  var bloomPickedEl=document.getElementById('bloomPicked');
+  var bloomSceneReady=true; // clean CSS bed is always present
+
+  function bloomIndex(label){ for(var i=0;i<garden.blooms.length;i++){ if(garden.blooms[i] && garden.blooms[i].label===label) return i; } return -1; }
+  function renderBloomChips(){
+    bloomChipsWrap.innerHTML='';
+    BLOOM_GROUPS.forEach(function(g){
+      var h=document.createElement('span'); h.className='chip-group'; h.textContent=g.label;
+      bloomChipsWrap.appendChild(h);
+      g.items.forEach(function(label){
+        var b=document.createElement('button');
+        b.className='chip'+(bloomIndex(label)>-1?' sel':'');
+        b.textContent=label;
+        b.addEventListener('click',function(){ toggleBloom(label); });
+        bloomChipsWrap.appendChild(b);
+      });
+    });
+  }
+  function renderBloomPicked(){
+    if(!garden.blooms.length){ bloomPickedEl.innerHTML='<span class="empty">Nothing planted yet — there’s no rush.</span>'; return; }
+    bloomPickedEl.innerHTML='';
+    garden.blooms.forEach(function(b){
+      if(!b) return;
+      var s=document.createElement('span');
+      s.innerHTML=b.label+' <b aria-label="remove" title="remove">✕</b>';
+      s.querySelector('b').addEventListener('click',function(){ toggleBloom(b.label); });
+      bloomPickedEl.appendChild(s);
+    });
+  }
+  function toggleBloom(label){
+    var i=bloomIndex(label), prev=garden.blooms.length;
+    if(i>-1){ garden.blooms.splice(i,1); syncBlooms(Infinity); }
+    else { garden.blooms.push({label:label}); syncBlooms(prev); }
+    save(); renderBloomChips(); renderBloomPicked();
+  }
+  function syncBlooms(animateFrom){
+    if(!bloomSceneReady) return;
+    bloomStageEl.querySelectorAll('.bloom').forEach(function(n){ n.remove(); });
+    garden.blooms.forEach(function(b,i){
+      if(!b) return;
+      var slot=BLOOM_SLOTS[i % BLOOM_SLOTS.length];
+      var mk=flowerMarkup[flowerFor(b.label)] || FALLBACK_FLOWER;
+      var el=document.createElement('div');
+      el.className='bloom'+(i>=animateFrom?' grow':'');
+      el.style.left=slot.x+'%'; el.style.top=slot.y+'%';
+      el.style.height=(33 + (i%3)*4)+'%';
+      el.style.zIndex=String(10 + Math.round(slot.y));
+      el.title=b.label;
+      el.innerHTML=mk;
+      bloomStageEl.appendChild(el);
+    });
+  }
+  function addBloomCustom(){
+    var inp=document.getElementById('bloomInput'); var v=inp.value.trim();
+    if(v && bloomIndex(v)===-1){ var prev=garden.blooms.length; garden.blooms.push({label:v}); save(); syncBlooms(prev); renderBloomChips(); renderBloomPicked(); }
+    inp.value='';
+  }
+  document.getElementById('bloomAdd').addEventListener('click',addBloomCustom);
+  document.getElementById('bloomInput').addEventListener('keydown',function(e){ if(e.key==='Enter'){ e.preventDefault(); addBloomCustom(); } });
+
+  // preload + crop each flower to its own art (so the big empty canvas is trimmed)
+  function preloadFlowers(){
+    var mc=document.createElement('div');
+    mc.style.cssText='position:absolute;left:-99999px;top:0;width:1200px;height:1200px;visibility:hidden';
+    document.body.appendChild(mc);
+    FLOWER_FILES.forEach(function(file,idx){
+      fetch('assets/'+file).then(function(r){ return r.ok?r.text():null; }).then(function(txt){
+        if(!txt) return;
+        var wrap=document.createElement('div'); wrap.innerHTML=txt; mc.appendChild(wrap);
+        var svg=wrap.querySelector('svg'); if(!svg){ mc.removeChild(wrap); return; }
+        var content=svg, bb=null; // crop to ALL art (union of every group), not just the first <g> — a flower/weed whose first group is a sub-part (e.g. flower3's pink blobs) was cropping to that sub-part and ballooning
+        try{ bb=content.getBBox(); }catch(e){}
+        if(bb && (bb.width||bb.height)){
+          var pad=Math.max(bb.width,bb.height)*0.05;
+          svg.setAttribute('viewBox',(bb.x-pad)+' '+(bb.y-pad)+' '+(bb.width+pad*2)+' '+(bb.height+pad*2));
+        }
+        svg.removeAttribute('width'); svg.removeAttribute('height');
+        flowerMarkup[idx]=svg.outerHTML;
+        mc.removeChild(wrap);
+        if(bloomSceneReady) syncBlooms(Infinity);
+      }).catch(function(){});
+    });
+  }
+
+  /* ----- screen 5: weeds (name → plant → pull / live-with / let-it-turn) ----- */
+  var COMMON_WEEDS=["I'm not good enough","I'm too much","I'll be found out","I'm behind everyone","I'm a burden","I should be coping better","It's all my fault","Everyone's judging me"];
+  var WEED_FILES=["weed1.svg","weed2.svg","weed3.svg"];
+  var FALLBACK_WEED='<svg viewBox="0 0 24 30"><path d="M12 28 C9 20 7 13 12 5 C17 13 15 20 12 28Z" fill="#54713e"/></svg>';
+  var weedMarkup=[];
+  var weedStageEl=document.getElementById('weedStage');
+  var weedChipsWrap=document.getElementById('weedChips');
+  var weedPickedEl=document.getElementById('weedPicked');
+
+  function weedIndex(label){ for(var i=0;i<garden.weeds.length;i++){ if(garden.weeds[i] && garden.weeds[i].label===label) return i; } return -1; }
+  function renderWeedChips(){
+    weedChipsWrap.innerHTML='';
+    COMMON_WEEDS.forEach(function(label){
+      var b=document.createElement('button');
+      b.className='chip'+(weedIndex(label)>-1?' sel':'');
+      b.textContent=label;
+      b.addEventListener('click',function(){ toggleWeed(label); });
+      weedChipsWrap.appendChild(b);
+    });
+  }
+  var FATES=[['pull','Pull'],['stay','Live with'],['turn','Let it turn']];
+  var FATE_CAPTION={pull:'let go',stay:'living with it',turn:'turned to a bloom'};
+  function renderWeedList(){
+    if(!garden.weeds.length){ weedPickedEl.innerHTML='<span class="empty">No weeds named yet — there’s no rush.</span>'; return; }
+    weedPickedEl.innerHTML='';
+    garden.weeds.forEach(function(w,i){
+      if(!w) return;
+      var row=document.createElement('div'); row.className='weedrow';
+      var lab=document.createElement('span'); lab.className='weedlabel';
+      lab.textContent=w.label;
+      if(w.fate){ var f=document.createElement('span'); f.className='fate'; f.textContent='— '+FATE_CAPTION[w.fate]; lab.appendChild(f); }
+      row.appendChild(lab);
+      var acts=document.createElement('span'); acts.className='weedacts';
+      FATES.forEach(function(a){
+        var b=document.createElement('button');
+        b.className='wact'+(w.fate===a[0]?' on':'');
+        b.textContent=a[1];
+        b.addEventListener('click',function(){ setFate(i,a[0]); });
+        acts.appendChild(b);
+      });
+      row.appendChild(acts);
+      var rm=document.createElement('button'); rm.className='weedrm'; rm.textContent='✕'; rm.title='remove';
+      rm.addEventListener('click',function(){ removeWeed(i); });
+      row.appendChild(rm);
+      weedPickedEl.appendChild(row);
+    });
+  }
+  function syncWeeds(animateFrom){
+    if(!weedStageEl) return;
+    weedStageEl.querySelectorAll('.weed').forEach(function(n){ n.remove(); });
+    garden.weeds.forEach(function(w,i){
+      if(!w || w.fate==='pull') return;            // pulled = gone from the bed
+      var slot=BLOOM_SLOTS[i % BLOOM_SLOTS.length];
+      var turned=w.fate==='turn';
+      var mk=turned ? (flowerMarkup[flowerFor(w.label)]||FALLBACK_FLOWER)
+                    : (weedMarkup[i % WEED_FILES.length]||FALLBACK_WEED);
+      var el=document.createElement('div');
+      el.className='bloom weed'+(w.fate==='stay'?' kept':'')+((turned||i>=animateFrom)?' grow':'');
+      el.style.left=slot.x+'%'; el.style.top=slot.y+'%';
+      el.style.height=(turned?32:26 + (i%3)*4)+'%';
+      el.style.zIndex=String(10 + Math.round(slot.y));
+      el.title=w.label+(w.fate?' — '+FATE_CAPTION[w.fate]:'');
+      el.innerHTML=mk;
+      weedStageEl.appendChild(el);
+    });
+  }
+  function toggleWeed(label){
+    var i=weedIndex(label), prev=garden.weeds.length;
+    if(i>-1){ garden.weeds.splice(i,1); syncWeeds(Infinity); }
+    else { garden.weeds.push({label:label, fate:null}); syncWeeds(prev); }
+    save(); renderWeedChips(); renderWeedList();
+  }
+  function setFate(i, fate){
+    if(!garden.weeds[i]) return;
+    garden.weeds[i].fate = (garden.weeds[i].fate===fate ? null : fate); // tap again to undo
+    save(); syncWeeds(Infinity); renderWeedList();
+  }
+  function removeWeed(i){
+    garden.weeds.splice(i,1); save(); syncWeeds(Infinity); renderWeedChips(); renderWeedList();
+  }
+  function addWeedCustom(){
+    var inp=document.getElementById('weedInput'); var v=inp.value.trim();
+    if(v && weedIndex(v)===-1){ var prev=garden.weeds.length; garden.weeds.push({label:v, fate:null}); save(); syncWeeds(prev); renderWeedChips(); renderWeedList(); }
+    inp.value='';
+  }
+  if(document.getElementById('weedAdd')){
+    document.getElementById('weedAdd').addEventListener('click',addWeedCustom);
+    document.getElementById('weedInput').addEventListener('keydown',function(e){ if(e.key==='Enter'){ e.preventDefault(); addWeedCustom(); } });
+  }
+  function preloadWeeds(){
+    var mc=document.createElement('div');
+    mc.style.cssText='position:absolute;left:-99999px;top:0;width:1200px;height:1200px;visibility:hidden';
+    document.body.appendChild(mc);
+    WEED_FILES.forEach(function(file,idx){
+      fetch('assets/'+file).then(function(r){ return r.ok?r.text():null; }).then(function(txt){
+        if(!txt) return;
+        var wrap=document.createElement('div'); wrap.innerHTML=txt; mc.appendChild(wrap);
+        var svg=wrap.querySelector('svg'); if(!svg){ mc.removeChild(wrap); return; }
+        var content=svg, bb=null; // crop to ALL art (union of every group), not just the first <g> — a flower/weed whose first group is a sub-part (e.g. flower3's pink blobs) was cropping to that sub-part and ballooning
+        try{ bb=content.getBBox(); }catch(e){}
+        if(bb && (bb.width||bb.height)){ var pad=Math.max(bb.width,bb.height)*0.05;
+          svg.setAttribute('viewBox',(bb.x-pad)+' '+(bb.y-pad)+' '+(bb.width+pad*2)+' '+(bb.height+pad*2)); }
+        svg.removeAttribute('width'); svg.removeAttribute('height');
+        weedMarkup[idx]=svg.outerHTML; mc.removeChild(wrap);
+        syncWeeds(Infinity);
+      }).catch(function(){});
+    });
+  }
+
+  // screen 3: load the new bear, cropped to its art (replaces the inline stand-in)
+  var bearLoaded=false;
+  function ensureBear(){
+    if(bearLoaded) return; bearLoaded=true;
+    var host=document.getElementById('bearArt'); if(!host) return;
+    var img=new Image();
+    img.className='bear-img'; img.alt='A bear at the edge of the garden';
+    img.onload=function(){ host.innerHTML=''; host.appendChild(img); };
+    img.src='assets/bear-trim.png';
+  }
+
+  /* ----- coach mode (gentle expand, no layout jolt) ----- */
+  document.getElementById('coachToggle').addEventListener('change',function(e){
+    document.body.classList.toggle('coach-on', e.target.checked);
+    if(e.target.checked){
+      var note=document.querySelector('.screen.active .coach-note');
+      if(note){
+        note.classList.remove('flash'); void note.offsetWidth; note.classList.add('flash');
+        setTimeout(function(){ note.classList.remove('flash'); }, 1500);
+        if(!reduced()) setTimeout(function(){ note.scrollIntoView({behavior:'smooth', block:'center'}); }, 220);
+      }
+    }
+  });
+
+  /* auto-swap: drop a file into assets/ and it replaces its placeholder on load */
+  document.querySelectorAll('.artslot').forEach(function(slot){
+    var img=slot.querySelector('.art-img'), ph=slot.querySelector('.slot');
+    if(!img) return;
+    function ok(){ img.classList.add('ok'); if(ph) ph.style.display='none'; }
+    function fail(){ img.style.display='none'; if(ph) ph.style.display='flex'; }
+    if(img.complete){ img.naturalWidth>0 ? ok() : fail(); }
+    img.addEventListener('load', ok);
+    img.addEventListener('error', fail);
+  });
+
+  /* ===== shared little helpers for chip/picked sets (screens 6 & 8) ===== */
+  function renderChipSet(wrapId, list, idxFn, onToggle){
+    var wrap=document.getElementById(wrapId); if(!wrap) return;
+    wrap.innerHTML='';
+    list.forEach(function(label){
+      var b=document.createElement('button');
+      b.className='chip'+(idxFn(label)>-1?' sel':'');
+      b.textContent=label;
+      b.addEventListener('click',function(){ onToggle(label); });
+      wrap.appendChild(b);
+    });
+  }
+  function renderPickedSet(wrapId, arr, onRemove, emptyMsg){
+    var wrap=document.getElementById(wrapId); if(!wrap) return;
+    if(!arr.length){ wrap.innerHTML='<span class="empty">'+emptyMsg+'</span>'; return; }
+    wrap.innerHTML='';
+    arr.forEach(function(label){
+      var s=document.createElement('span');
+      s.innerHTML=esc(label)+' <b aria-label="remove" title="remove">✕</b>';
+      s.querySelector('b').addEventListener('click',function(){ onRemove(label); });
+      wrap.appendChild(s);
+    });
+  }
+  function wireAdd(btnId, inputId, addFn){
+    var btn=document.getElementById(btnId), inp=document.getElementById(inputId);
+    if(!btn||!inp) return;
+    function submit(){ var v=inp.value.trim(); if(v) addFn(v); inp.value=''; }
+    btn.addEventListener('click', submit);
+    inp.addEventListener('keydown', function(e){ if(e.key==='Enter'){ e.preventDefault(); submit(); } });
+  }
+  function esc(s){ return String(s).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];}); }
+
+  /* ===== screen 6: the bucket — fill it → tip the can → it pours onto the garden ===== */
+  var COMMON_FILLS=["Work pressure","A hard conversation","Too much noise","Other people's moods","Saying yes too often","Money worries","Not enough sleep","Masking all day","The news","A long to-do list","Health stuff","A change of plan"];
+  var COMMON_POURS=["A good night's sleep","Talking it out","Moving my body","Time alone to recharge","Making something","A proper cry","Being in nature","Play / something fun","Asking for help","Rest without guilt"];
+  var bucketStage=document.getElementById('bucketStage'),
+      bucketWater=document.getElementById('bucketWater'),
+      tipBtn=document.getElementById('tipBtn'),
+      tipMsg=document.getElementById('tipMsg');
+  function bucketLevel(){ // % full — rises a notch per load, drops when tipped out
+    if(garden.bucket.tipped) return garden.bucket.fills.length? 10 : 0;
+    return Math.min(94, garden.bucket.fills.length*16);
+  }
+  function updateBucket(){ // gradual: water rises with each load you name
+    if(bucketWater) bucketWater.style.height = bucketLevel()+'%';
+  }
+  function fillIdx(l){ return garden.bucket.fills.indexOf(l); }
+  function pourIdx(l){ return garden.bucket.pours.indexOf(l); }
+  function renderFills(){ renderChipSet('fillChips', COMMON_FILLS, fillIdx, toggleFill);
+    renderPickedSet('fillPicked', garden.bucket.fills, toggleFill, "Empty for now — there's no rush."); }
+  function renderPours(){ renderChipSet('pourChips', COMMON_POURS, pourIdx, togglePour);
+    renderPickedSet('pourPicked', garden.bucket.pours, togglePour, "None named yet."); }
+  function toggleFill(label){
+    var i=fillIdx(label);
+    if(i>-1) garden.bucket.fills.splice(i,1);
+    else { garden.bucket.fills.push(label); garden.bucket.tipped=false; if(tipMsg) tipMsg.textContent=''; }
+    save(); updateBucket(); renderFills();
+  }
+  function togglePour(label){
+    var i=pourIdx(label);
+    if(i>-1) garden.bucket.pours.splice(i,1); else garden.bucket.pours.push(label);
+    save(); renderPours();
+  }
+  function tipCan(){
+    if(!garden.bucket.fills.length){ tipMsg.textContent='Add what fills your bucket first ↑'; return; }
+    if(!garden.bucket.pours.length){ tipMsg.textContent='First, name a way you tip it out ↑ — what helps the load move?'; return; }
+    var p=garden.bucket.pours[Math.floor(Math.random()*garden.bucket.pours.length)];
+    tipMsg.textContent='The garden drinks 🌿 — that’s “'+p+'” doing its quiet work.';
+    // the bucket + can sit at the top of the page — bring them into view so the pour is actually seen
+    if(bucketStage) bucketStage.scrollIntoView({behavior: reduced()?'auto':'smooth', block:'center'});
+    function startPour(){
+      if(bucketStage) bucketStage.classList.add('pouring');
+      garden.bucket.tipped=true; save();
+      setTimeout(updateBucket, reduced()?0:380);
+      if(bucketStage && !reduced()) setTimeout(function(){ bucketStage.classList.remove('pouring'); }, 1500);
+      else if(bucketStage) bucketStage.classList.remove('pouring');
+    }
+    reduced() ? startPour() : setTimeout(startPour, 440); // let the scroll settle, then pour
+  }
+  if(tipBtn) tipBtn.addEventListener('click', tipCan);
+  wireAdd('fillAdd','fillInput', function(v){ if(fillIdx(v)===-1){ garden.bucket.fills.push(v); garden.bucket.tipped=false; save(); updateBucket(); renderFills(); } });
+  wireAdd('pourAdd','pourInput', function(v){ if(pourIdx(v)===-1){ garden.bucket.pours.push(v); save(); renderPours(); } });
+
+  /* ===== screen 8: tending plan — choose ONE; the rest set gently aside ===== */
+  var TENDING=[
+    {key:'water',   ico:'💧', nm:'Water',            ds:'Nourish — sleep, food, rest, the basics'},
+    {key:'protect', ico:'🛡️', nm:'Protect from frost',ds:'Shield one tender thing from the alarm'},
+    {key:'prune',   ico:'✂️', nm:'Prune',            ds:'Let one thing go — a “should”, a “yes”'},
+    {key:'rest',    ico:'🪑', nm:'Rest',             ds:'Sit with the garden; do nothing on purpose'},
+    {key:'plant',   ico:'🌱', nm:'Plant something',  ds:'Sow one small new thing you fancy'},
+    {key:'hands',   ico:'🧤', nm:'Hands-on care',    ds:'Tend a weed — challenge it or tend around it'},
+    {key:'light',   ico:'☀️', nm:'Light',            ds:'More of what lifts you — people, play, sun'}
+  ];
+  var tendGrid=document.getElementById('tendingGrid'), tendChosen=document.getElementById('tendingChosen');
+  function renderTending(){
+    if(!tendGrid) return;
+    tendGrid.innerHTML='';
+    tendGrid.classList.toggle('has-choice', !!garden.tending);
+    TENDING.forEach(function(t){
+      var c=document.createElement('button'); c.type='button'; c.setAttribute('role','option');
+      c.className='tend-card'+(garden.tending&&garden.tending.key===t.key?' chosen':'');
+      c.innerHTML='<span class="ico">'+t.ico+'</span><span class="nm">'+t.nm+'</span><span class="ds">'+t.ds+'</span>';
+      c.addEventListener('click',function(){ chooseTending(t); });
+      tendGrid.appendChild(c);
+    });
+    if(!tendChosen) return;
+    if(!garden.tending){ tendChosen.innerHTML='<span class="empty">Nothing chosen yet — take your time.</span>'; }
+    else tendChosen.innerHTML='This week, you’ll tend: <b>'+garden.tending.ico+' '+esc(garden.tending.nm)+'</b> — '+esc(garden.tending.ds)+'.';
+  }
+  function chooseTending(t){
+    if(garden.tending && garden.tending.key===t.key) garden.tending=null; // tap again to clear
+    else garden.tending={key:t.key, nm:t.nm, ds:t.ds, ico:t.ico};
+    save(); renderTending();
+  }
+
+  /* ===== screen 9: garden map — assemble everything named, print-clean ===== */
+  function tagsHTML(arr, labelOf, emptyMsg){
+    if(!arr || !arr.length) return '<span class="none">'+emptyMsg+'</span>';
+    return arr.map(function(x){ return '<span class="tag">'+esc(labelOf(x))+'</span>'; }).join('');
+  }
+  function setZone(id, html){ var el=document.getElementById(id); if(el) el.innerHTML=html; }
+  function renderMap(){
+    setZone('mapAlarm', tagsHTML(garden.alarm, function(s){return s;}, '— nothing named yet —'));
+    setZone('mapBlooms', tagsHTML(garden.blooms, function(b){return b.label;}, '— nothing planted yet —'));
+    if(!garden.weeds || !garden.weeds.length) setZone('mapWeeds','<span class="none">— none named yet —</span>');
+    else setZone('mapWeeds', garden.weeds.map(function(w){
+      var cls=(w.fate==='turn')?'turned':'weed';
+      var cap=w.fate?(' · '+(FATE_CAPTION[w.fate]||w.fate)):'';
+      return '<span class="tag '+cls+'">'+esc(w.label)+esc(cap)+'</span>';
+    }).join(''));
+    var fills=garden.bucket.fills.length? tagsHTML(garden.bucket.fills,function(s){return s;},'') : '<span class="none">nothing in it</span>';
+    var pours=garden.bucket.pours.length? garden.bucket.pours.map(function(s){return '<span class="tag turned">💧 '+esc(s)+'</span>';}).join('') : '<span class="none">no pour named yet</span>';
+    setZone('mapBucket',
+      '<div style="flex-basis:100%"><b>What fills it</b></div>'+fills+
+      '<div style="flex-basis:100%;margin-top:8px"><b>How you tip it out</b></div>'+pours+
+      '<div class="lvl-track" style="margin-top:8px"><div class="lvl-fill" style="width:'+bucketLevel()+'%"></div></div>');
+    setZone('mapSeason', garden.season? '<span class="tag">'+esc(garden.season)+'</span>' : '<span class="none">— not chosen yet (screen coming) —</span>');
+    setZone('mapTending', garden.tending? '<span class="tag">'+esc(garden.tending.ico+' '+garden.tending.nm)+'</span> <span class="none" style="font-style:normal">'+esc(garden.tending.ds)+'</span>' : '<span class="none">— not chosen yet —</span>');
+  }
+  var printBtn=document.getElementById('printBtn');
+  if(printBtn) printBtn.addEventListener('click', function(){ window.print(); });
+
+  /* ===== screen 7: seasons — a feeling suggests a season (never diagnoses it) ===== */
+  var SEASONS={
+    spring:{emoji:'🌱',name:'Spring',read:'new growth — things are starting'},
+    summer:{emoji:'☀️',name:'Summer',read:'thriving — full bloom'},
+    autumn:{emoji:'🍂',name:'Autumn',read:'shedding and turning — letting go'},
+    winter:{emoji:'❄️',name:'Winter',read:'withdrawn and quiet — but alive under the soil'},
+    fallow:{emoji:'🌾',name:'Fallow',read:'depleted and still — resting, not failed'}
+  };
+  var SEASON_ORDER=['spring','summer','autumn','winter','fallow'];
+  var FEELINGS=[
+    {fam:'Happy',word:'Hopeful',s:'spring'},{fam:'Happy',word:'Inspired',s:'spring'},{fam:'Happy',word:'Eager',s:'spring'},
+    {fam:'Happy',word:'Joyful',s:'summer'},{fam:'Happy',word:'Confident',s:'summer'},{fam:'Happy',word:'Capable',s:'summer'},
+    {fam:'Sad',word:'Grief',s:'autumn'},{fam:'Sad',word:'Disappointed',s:'autumn'},{fam:'Sad',word:'Letting go',s:'autumn'},
+    {fam:'Sad',word:'Lonely',s:'winter'},{fam:'Sad',word:'Low',s:'winter'},{fam:'Sad',word:'Withdrawn',s:'winter'},
+    {fam:'Numb',word:'Empty',s:'fallow'},{fam:'Numb',word:'Flat',s:'fallow'},{fam:'Numb',word:'Bored',s:'fallow'},{fam:'Numb',word:'Switched off',s:'fallow'}
+  ];
+  var feelWheelEl=document.getElementById('feelWheel'),
+      seasonImg=document.getElementById('seasonImg'), seasonPh=document.getElementById('seasonPh'),
+      seasonSay=document.getElementById('seasonSay'), seasonPick=document.getElementById('seasonPick'),
+      seasonChipsEl=document.getElementById('seasonChips');
+  var pickedFeeling=null;
+  function renderFeelWheel(){
+    if(!feelWheelEl) return;
+    feelWheelEl.innerHTML=''; var lastFam=null;
+    FEELINGS.forEach(function(f){
+      if(f.fam!==lastFam){ var h=document.createElement('span'); h.className='fam'; h.textContent=f.fam; feelWheelEl.appendChild(h); lastFam=f.fam; }
+      var b=document.createElement('button'); b.type='button';
+      b.className='feel-chip s-'+f.s+(pickedFeeling===f.word?' sel':'');
+      b.textContent=f.word;
+      b.addEventListener('click',function(){ pickedFeeling=f.word; setSeason(f.s); renderFeelWheel(); });
+      feelWheelEl.appendChild(b);
+    });
+  }
+  function renderSeasonChips(){
+    if(!seasonChipsEl) return;
+    seasonChipsEl.innerHTML='';
+    SEASON_ORDER.forEach(function(k){
+      var s=SEASONS[k];
+      var b=document.createElement('button'); b.type='button';
+      b.className='season-chip s-'+k+(garden.season===k?' sel':'');
+      b.innerHTML='<span>'+s.emoji+'</span> '+s.name;
+      b.addEventListener('click',function(){ pickedFeeling=null; setSeason(k); renderFeelWheel(); });
+      seasonChipsEl.appendChild(b);
+    });
+  }
+  function setSeason(key){
+    garden.season=key; save();
+    var s=SEASONS[key];
+    if(seasonImg){
+      seasonImg.classList.remove('show');
+      seasonImg.onload=function(){ seasonImg.classList.add('show'); if(seasonPh) seasonPh.style.display='none'; };
+      seasonImg.onerror=function(){ seasonImg.classList.remove('show'); if(seasonPh){ seasonPh.style.display='flex'; seasonPh.querySelector('.emoji').textContent=s.emoji; seasonPh.querySelector('.nm').textContent=s.name; } };
+      seasonImg.src='assets/'+key+'.png';
+    }
+    if(seasonSay) seasonSay.innerHTML='Your garden looks like <b>'+s.emoji+' '+s.name+'</b> — '+s.read+'.';
+    if(seasonPick) seasonPick.hidden=false;
+    renderSeasonChips();
+  }
+  function initSeason(){
+    renderFeelWheel(); renderSeasonChips();
+    if(garden.season) setSeason(garden.season);
+  }
+
+  /* ===== the wall — a quiet boundary close-up; heals passively over tended sessions ===== */
+  var WALL_STAGES=['assets/wall-stage1.png','assets/wall-stage2.png','assets/wall-stage3.png'];
+  var WALL_COPY=[
+    'The wall around your garden. Some of it was hurt — those are the gaps. It still stands, and it still holds everything you grow.',
+    'Look closer: green is creeping into the places it was hurt. You haven’t fixed it on purpose — it softens on its own as you tend the rest of the garden.',
+    'Where it was hurt, the green has filled in. The wall is whole — not because the hurt never happened, but because you kept tending, season after season.'
+  ];
+  var wallCloseEl=document.getElementById('wallClose'),
+      wallStageImg=document.getElementById('wallStageImg'),
+      wallCopyEl=document.getElementById('wallCopy'),
+      wallXBtn=document.getElementById('wallX');
+  function wallStage(){
+    var i=(garden.wall && garden.wall.integrity) || 0;
+    return i>=0.67 ? 2 : (i>=0.34 ? 1 : 0);
+  }
+  function openWall(){
+    if(!wallCloseEl) return;
+    var s=wallStage();
+    if(wallStageImg) wallStageImg.src=WALL_STAGES[s];
+    if(wallCopyEl) wallCopyEl.textContent=WALL_COPY[s];
+    wallCloseEl.hidden=false;
+  }
+  function closeWall(){ if(wallCloseEl) wallCloseEl.hidden=true; }
+  if(wallXBtn) wallXBtn.addEventListener('click', closeWall);
+  if(wallCloseEl) wallCloseEl.addEventListener('click', function(e){ if(e.target===wallCloseEl) closeWall(); });
+  document.addEventListener('keydown', function(e){ if(e.key==='Escape') closeWall(); });
+  var wallNudgedThisVisit=false;
+  function nudgeWall(){
+    if(wallNudgedThisVisit) return;          // once per session — a "tended session", not per visit
+    wallNudgedThisVisit=true;
+    if(!garden.wall) garden.wall={integrity:0};
+    garden.wall.integrity = Math.min(1, (garden.wall.integrity||0) + 0.18);  // a hair more whole
+    save();
+  }
+
+  renderChips(); renderPicked();
+  renderBloomChips(); renderBloomPicked(); preloadFlowers();
+  renderWeedChips(); renderWeedList(); preloadWeeds();
+  renderFills(); renderPours(); updateBucket(); renderTending(); initSeason();
+  initScene(); go(0);
+})();
+</script>
+
+<script>
+/* ===== cast the sundial's weather onto the garden =====
+   We meet the sundial ONLY at the `sundial:select` DOM event (see GARDEN-CAST-HANDOFF.md).
+   This block owns garden.html's side; it never touches sundial.html.
+   detail = { key, label, mode:'weather'|'climate', kind:'sun'|'rain'|'cold'|'storm'|'fog'|'flash'|null,
+              regions:[...], color:'#rainbowhue' } */
+(function(){
+  "use strict";
+  function reduced(){ return window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches; }
+
+  /* one editable config object (brief §9): weather + climate framing + sensation→place map */
+  var CAST = {
+    weather:{
+      sun:  {name:'bright, open sky', pass:'Even sunshine is in motion; clouds drift across and back.'},
+      rain: {name:'steady rain',      pass:'Rain is heavy to stand in, and it passes — and it waters things.'},
+      cold: {name:'a cold front',     pass:'A cold gust moves through fast; it’s loud, but already leaving.'},
+      storm:{name:'a thunderhead',    pass:'Storms burn hot, then blow over.'},
+      fog:  {name:'drifting fog',     pass:'Fog clouds the view, then lifts.'},
+      flash:{name:'a sudden flash',   pass:'The briefest weather — a flash, then gone, handing you to whatever’s next.'}
+    },
+    climate:{
+      seeking:{name:'the growth-drive', steady:'Not a weather — the engine underneath. Always on: every plant leaning toward the light.'},
+      care:   {name:'a warm front between the beds', steady:'The warmth that builds a bond — the same warmth that aches when it’s lost. It stays; it doesn’t roll through.'}
+    },
+    /* TODO: confirm sensation→place map — brief §6 is NEEDS LISA. Names are the §6 starter;
+       x/y are placeholder positions over the scene (0–100%), not Lisa's confirmed geography. */
+    place:{
+      chest:{name:'the greenhouse, the warm centre', x:50, y:48},
+      throat:{name:'the gate, the narrow path',      x:28, y:62},
+      gut:  {name:'the soil & roots',                x:52, y:82},
+      face: {name:'the sky & canopy',                x:50, y:16},
+      hands:{name:'the tools & the beds',            x:72, y:68},
+      limbs:{name:'the paths & fences',              x:16, y:76},
+      full: {name:'the whole garden, lit at once',   x:50, y:50, full:true}
+    }
+  };
+
+  var flashTimer=null;
+  function stage(){ return document.getElementById('sceneStage'); }
+  function overlay(){
+    var st=stage(); if(!st) return null;
+    var ov=st.querySelector('.weather-cast');
+    if(!ov){ ov=document.createElement('div'); ov.className='weather-cast'; ov.setAttribute('aria-hidden','true'); st.appendChild(ov); }
+    return ov;
+  }
+
+  function clearCast(persist){
+    if(flashTimer){ clearTimeout(flashTimer); flashTimer=null; }
+    var st=stage(); if(!st) return;
+    var ov=st.querySelector('.weather-cast'); if(ov){ ov.classList.remove('on'); setTimeout(function(){ if(ov && !ov.classList.contains('on')) ov.innerHTML=''; }, reduced()?0:1100); }
+    if(persist!==false){ try{ localStorage.removeItem('garden.cast'); }catch(e){} }
+  }
+
+  function placeGlows(regions, color){
+    if(!regions || !regions.length) return '';
+    return regions.map(function(r){
+      var p=CAST.place[r]; if(!p) return '';
+      return '<span class="place-glow'+(p.full?' full':'')+'" style="left:'+p.x+'%; top:'+p.y+'%; --glow:'+hexToGlow(color)+'"></span>';
+    }).join('');
+  }
+  function placeNames(regions){
+    if(!regions || !regions.length) return '';
+    var seen={}, names=[];
+    regions.forEach(function(r){ var p=CAST.place[r]; if(p && !seen[p.name]){ seen[p.name]=1; names.push(p.name); } });
+    return names.join(' · ');
+  }
+  function hexToGlow(hex){
+    if(!hex) return 'rgba(255,255,255,.55)';
+    var m=/^#?([0-9a-f]{6})$/i.exec(hex.trim()); if(!m) return hex;
+    var n=parseInt(m[1],16);
+    return 'rgba('+((n>>16)&255)+','+((n>>8)&255)+','+(n&255)+',.55)';
+  }
+
+  function cast(d){
+    if(!d) return;
+    var st=stage(); if(!st) return;
+    var ov=overlay(); if(!ov) return;
+    if(flashTimer){ clearTimeout(flashTimer); flashTimer=null; }
+    if(d.color) st.style.setProperty('--cast-hue', d.color);
+
+    var body='<div class="wash"></div>';
+    var where=placeNames(d.regions);
+    var note;
+
+    if(d.mode==='climate'){
+      var c=CAST.climate[d.key]||{name:d.label||'a steady condition', steady:''};
+      body+='<div class="w-'+(d.key==='care'?'care':'seeking')+'"></div>'+placeGlows(d.regions, d.color);
+      note='<span class="w-name">'+esc(c.name)+'</span>'+
+           (where?'<span class="w-where">where it lands — '+esc(where)+'</span>':'')+
+           '<span class="w-pass">'+esc(c.steady)+'</span>';
+    } else {
+      var kind=d.kind||'sun';
+      var w=CAST.weather[kind]||{name:d.label||'weather', pass:'It passes.'};
+      body+=kindVisual(kind)+placeGlows(d.regions, d.color);
+      note='<span class="w-name">'+esc(w.name)+'</span>'+
+           (where?'<span class="w-where">where it lands — '+esc(where)+'</span>':'')+
+           '<span class="w-pass">'+esc(w.pass)+'</span>'+
+           '<button type="button" class="w-move">let it move on</button>';
+      if(kind==='flash'){ flashTimer=setTimeout(function(){ clearCast(); }, reduced()?1600:2600); }
+    }
+
+    ov.innerHTML=body+'<div class="cast-note" role="status" aria-live="polite">'+note+'</div>';
+    // force reflow so the .on transition runs even on a re-cast
+    void ov.offsetWidth;
+    ov.classList.add('on');
+    var mv=ov.querySelector('.w-move'); if(mv) mv.addEventListener('click', function(){ clearCast(); });
+
+    try{ localStorage.setItem('garden.cast', JSON.stringify({key:d.key,label:d.label,mode:d.mode,kind:d.kind,regions:d.regions,color:d.color})); }catch(e){}
+  }
+
+  function kindVisual(kind){
+    if(kind==='sun')  return '<div class="w-sun"></div>';
+    if(kind==='rain') return '<div class="w-rain">'+streaks(14,3,90)+'</div>';
+    if(kind==='cold') return '<div class="w-cold"><div class="chill"></div>'+streaks(10,8,84)+'</div>';
+    if(kind==='fog')  return '<div class="w-fog"></div>';
+    if(kind==='storm')return '<div class="w-storm"></div>';
+    if(kind==='flash')return '<div class="w-flash"></div>';
+    return '';
+  }
+  function streaks(n, x0, span){
+    var s='';
+    for(var i=0;i<n;i++){ s+='<span class="streak" style="left:'+(x0+i*(span/n)).toFixed(1)+'%; animation-delay:'+(i*0.18).toFixed(2)+'s"></span>'; }
+    return s;
+  }
+  function esc(s){ return String(s==null?'':s).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];}); }
+
+  /* the contract: listen on document for the sundial's pick */
+  document.addEventListener('sundial:select', function(e){ cast(e.detail); });
+  /* test / standalone hook (no sundial.html needed to verify): window.__sundialCast({...}) */
+  window.__sundialCast = cast;
+
+  /* silent resume of the last cast (house rule: localStorage = quiet resume only) */
+  try{
+    var saved=localStorage.getItem('garden.cast');
+    if(saved){ var d=JSON.parse(saved); if(d && (d.mode==='climate' || d.kind)) setTimeout(function(){ cast(d); }, 400); }
+  }catch(e){}
+})();
+</script>
+</body>
+</html>

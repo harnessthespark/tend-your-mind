@@ -1,0 +1,16 @@
+.git
+.gitignore
+Dockerfile
+.dockerignore
+*.md
+Library
+Logs
+ProjectSettings
+UserSettings
+Packages
+_*
+*.ai
+*-backup.*
+assets/SVG
+assets/1x
+assets/3x
