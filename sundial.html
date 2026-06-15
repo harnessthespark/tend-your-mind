@@ -45,7 +45,7 @@
 
   /* AMBIENT — the painted tilted disc */
   .ambient{cursor:pointer; opacity:1}
-  .ambient img{width:100%; height:auto; display:block; -webkit-user-drag:none}
+  .ambient img{height:100%; width:auto; max-width:100%; margin:0 auto; display:block; -webkit-user-drag:none}
   .ambient .shadow{position:absolute; left:50%; top:38%; width:2px; height:24%;
     transform-origin:bottom center; background:linear-gradient(to top, rgba(0,0,0,.28), rgba(0,0,0,0));
     border-radius:2px; pointer-events:none; animation:sundrift 22s ease-in-out infinite}
@@ -394,8 +394,8 @@
   function renderPanel(state){
     if(state==='idle'){
       panel.className='panel idle';
-      panel.innerHTML=head('the dial rests','turn it to face you','',
-        "the shadow drifts on its own — that's the weather moving.");
+      panel.innerHTML=head('the dial rests','feelings are weather','',
+        'they roll in, move through, and pass.');
       return;
     }
     if(state==='prompt'){
