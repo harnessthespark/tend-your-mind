@@ -62,6 +62,8 @@
   .wheel{width:100%; height:auto; display:block; overflow:visible}
   .wheel .seg{cursor:pointer; transition:opacity .35s ease}
   .wheel .seg:hover{opacity:.88}
+  /* focus follows the wedge shape (no rectangular outline box) */
+  .wheel .seg:focus-visible{outline:none; stroke:#fff; stroke-width:3}
   .wheel.has-pick .seg{opacity:.5}
   .wheel.has-pick .seg.is-pick{opacity:1}
   /* climate segments: a steady, breathing glow — the conditions, always lit,
@@ -129,6 +131,25 @@
   body.embed > .wrap > .lede,
   body.embed .todo{display:none}
 
+  /* ---- the guided walk: body-first entry for low interoceptive clarity ---- */
+  .journey[hidden]{display:none}
+  .journey{max-width:46ch; margin:14px auto 0; text-align:center}
+  .journey .q{font-weight:800; color:var(--ink); margin:6px 0 4px; font-size:1.05rem}
+  .journey .sub2{color:var(--ink-soft); font-size:.9rem; margin:0 0 10px}
+  .chiprow{display:flex; flex-wrap:wrap; gap:8px; justify-content:center; margin-bottom:12px}
+  .chip2{font-family:inherit; font-size:.92rem; font-weight:700; cursor:pointer;
+    background:var(--card); color:var(--ink); border:1.5px solid var(--line);
+    border-radius:999px; padding:8px 13px; transition:border-color .15s, background .15s, color .15s}
+  .chip2:hover{border-color:var(--ink-faint)}
+  .chip2[aria-pressed="true"]{background:var(--ink); color:var(--paper); border-color:var(--ink)}
+  .choice{display:flex; gap:9px; flex-direction:column; align-items:center; margin-top:6px}
+  .choice .btn{min-width:248px}
+  .choice .or{color:var(--ink-faint); font-size:.84rem}
+  /* narrowing: candidates stay lit, the rest recede */
+  .wheel.narrowed .seg{opacity:.22}
+  .wheel.narrowed .seg.is-candidate{opacity:1}
+  .wheel.narrowed .seg.is-candidate{stroke:#fff; stroke-width:2}
+
   .controls{margin-top:18px; display:flex; gap:10px; justify-content:center; flex-wrap:wrap}
   .btn{font-family:inherit; font-size:.92rem; font-weight:700; cursor:pointer;
     background:var(--card); color:var(--ink); border:1.5px solid var(--line);
@@ -173,11 +194,12 @@
     <!-- ACTIVE: the flat, head-on, tappable wheel (built in JS) -->
     <div class="face active" id="active">
       <svg class="wheel" id="wheel" viewBox="0 0 440 440" role="group"
-           aria-label="Wheel of feelings. Eight segments. Choose the one that fits today.">
+           aria-label="Wheel of feelings. Six segments. Choose the one that fits today.">
       </svg>
     </div>
   </div>
 
+  <div class="journey" id="journey" hidden></div>
   <div class="panel idle" id="panel" aria-live="polite"></div>
 
   <div class="controls">
@@ -314,13 +336,7 @@
     var a = i*STEP - STEP/2, p = pt(a,R);
     wheel.appendChild(el('line',{x1:CX,y1:CY,x2:p[0].toFixed(2),y2:p[1].toFixed(2),class:'divider'}));
   }
-  // four decorative cardinal pill-markers on the rim (no extra meaning)
-  [0,90,180,270].forEach(function(a){
-    var c = pt(a, R+14);
-    var pill = el('rect',{x:c[0]-7,y:c[1]-4,width:14,height:8,rx:4,class:'pill',
-      transform:'rotate('+a+' '+c[0]+' '+c[1]+')'});
-    wheel.appendChild(pill);
-  });
+  // (removed the cardinal rim pills — they read as stray "0"s)
   // selection highlight ring (sits above segments)
   var ring = el('path',{class:'ring', d:''});
   wheel.appendChild(ring);
@@ -344,6 +360,7 @@
       engageBtn=document.getElementById('engage'),
       releaseBtn=document.getElementById('release'),
       panel=document.getElementById('panel'),
+      journeyEl=document.getElementById('journey'),
       wash=document.getElementById('wash'),
       srSummary=document.getElementById('srSummary'),
       picked=-1;
@@ -432,17 +449,128 @@
     wash.style.opacity='1';
   }
 
+  /* ================= THE GUIDED WALK (body-first entry) =================
+     For alexithymia / low interoceptive clarity: start from the body you CAN
+     notice, not the name you can't. Same data, run backwards.
+     ⚠ EDIT THE CLINICAL WORDS — these are seeds for Lisa to redline.
+     ===================================================================== */
+  var REGIONS = [
+    {key:'chest', label:'chest'}, {key:'throat', label:'throat'},
+    {key:'gut', label:'belly'}, {key:'face', label:'face / head'},
+    {key:'hands', label:'hands'}, {key:'limbs', label:'arms & legs'},
+    {key:'full', label:'all over'}
+  ];
+  var QUALITIES = [
+    {key:'tight', label:'tight / clenched'}, {key:'hot', label:'hot / burning'},
+    {key:'cold', label:'cold / chilled'}, {key:'heavy', label:'heavy / sinking'},
+    {key:'light', label:'light / open'}, {key:'fluttery', label:'fluttery / racing'},
+    {key:'queasy', label:'queasy / turning'}, {key:'numb', label:'numb / flat'}
+  ];
+  // per-feeling body signature (quality + valence). regions come from SEGMENTS.
+  var SIGNATURE = {
+    anger:{qualities:['hot','tight'], valence:-0.6},
+    joy:{qualities:['light','fluttery'], valence:0.9},
+    disgust:{qualities:['queasy','tight'], valence:-0.7},
+    sadness:{qualities:['heavy','numb'], valence:-0.7},
+    fear:{qualities:['fluttery','cold','tight'], valence:-0.7},
+    surprise:{qualities:['fluttery'], valence:0}
+  };
+
+  var sel = {regions:[], qualities:[]};
+  function clearNarrow(){
+    wheel.classList.remove('narrowed');
+    wheel.querySelectorAll('.seg').forEach(function(p){ p.classList.remove('is-candidate'); });
+  }
+  function chipRow(items, type){
+    return '<div class="chiprow">'+ items.map(function(it){
+      var on = sel[type].indexOf(it.key)>-1;
+      return '<button class="chip2" type="button" data-type="'+type+'" data-key="'+it.key+
+        '" aria-pressed="'+on+'">'+esc(it.label)+'</button>';
+    }).join('')+'</div>';
+  }
+  function showChoice(){
+    journeyEl.hidden=false; clearNarrow();
+    wheel.style.pointerEvents='none';
+    panel.className='panel idle'; panel.innerHTML='';
+    journeyEl.innerHTML =
+      '<div class="choice">'+
+        '<p class="q">how shall we start?</p>'+
+        '<button class="btn" type="button" id="jFeel">I just feel something</button>'+
+        '<span class="or">or</span>'+
+        '<button class="btn ghost" type="button" id="jName">I already know what I feel</button>'+
+      '</div>';
+    journeyEl.querySelector('#jFeel').addEventListener('click', showNotice);
+    journeyEl.querySelector('#jName').addEventListener('click', startNaming);
+    journeyEl.querySelector('#jFeel').focus();
+  }
+  function startNaming(){
+    journeyEl.hidden=true; clearNarrow(); wheel.style.pointerEvents='';
+    renderPanel('prompt');
+    var f=wheel.querySelector('.seg'); if(f) f.focus();
+  }
+  function showNotice(){
+    sel={regions:[], qualities:[]};
+    journeyEl.hidden=false; clearNarrow(); wheel.style.pointerEvents='none';
+    journeyEl.innerHTML =
+      '<p class="q">where do you feel it?</p>'+
+      '<p class="sub2">tap any that fit — there’s no wrong answer.</p>'+
+      chipRow(REGIONS,'regions')+
+      '<p class="q">what’s it like?</p>'+
+      chipRow(QUALITIES,'qualities')+
+      '<div class="choice">'+
+        '<button class="btn" type="button" id="jShow">show me what this might be</button>'+
+        '<button class="btn ghost" type="button" id="jBack">← back</button>'+
+      '</div>';
+    journeyEl.querySelectorAll('.chip2').forEach(function(b){
+      b.addEventListener('click', function(){
+        var t=b.getAttribute('data-type'), k=b.getAttribute('data-key'), i=sel[t].indexOf(k);
+        if(i>-1) sel[t].splice(i,1); else sel[t].push(k);
+        b.setAttribute('aria-pressed', sel[t].indexOf(k)>-1);
+      });
+    });
+    journeyEl.querySelector('#jShow').addEventListener('click', doNarrow);
+    journeyEl.querySelector('#jBack').addEventListener('click', showChoice);
+  }
+  function scoreSeg(s){
+    var sig=SIGNATURE[s.key]||{qualities:[]}, sc=0;
+    sel.qualities.forEach(function(q){ if(sig.qualities.indexOf(q)>-1) sc+=2; });
+    sel.regions.forEach(function(r){
+      if((s.regions||[]).indexOf(r)>-1) sc+=1;
+      else if(r==='full' && (s.regions||[]).indexOf('full')>-1) sc+=1; });
+    return sc;
+  }
+  function doNarrow(){
+    if(!sel.regions.length && !sel.qualities.length){ return; } // nothing picked yet
+    var top = SEGMENTS.map(function(s,i){ return {i:i, s:s, sc:scoreSeg(s)}; })
+      .filter(function(o){ return o.sc>0; })
+      .sort(function(a,b){ return b.sc-a.sc; }).slice(0,3);
+    journeyEl.hidden=true; wheel.style.pointerEvents='';
+    clearNarrow();
+    if(!top.length){ renderPanel('prompt'); return; }  // no match → free pick
+    wheel.classList.add('narrowed');
+    var keys={}; top.forEach(function(o){ keys[o.i]=1; });
+    wheel.querySelectorAll('.seg').forEach(function(p,j){ p.classList.toggle('is-candidate', !!keys[j]); });
+    panel.className='panel';
+    panel.innerHTML =
+      '<div class="kicker">this might be</div>'+
+      '<div class="name" style="font-size:1.4rem">'+
+        top.map(function(o){ return '<span style="color:'+o.s.color+'">'+esc(o.s.label)+'</span>'; }).join(' · ')+
+      '</div>'+
+      '<div class="line" style="font-style:normal">tap the one that fits — or pick another.</div>';
+    srSummary.textContent = 'This might be '+top.map(function(o){return o.s.label;}).join(', or ')+
+      '. Tap the one that fits, or choose another segment.';
+  }
+
   function engage(){
     stage.classList.add('is-active');
     engageBtn.hidden=true; releaseBtn.hidden=false;
-    renderPanel('prompt');
-    var first=wheel.querySelector('.seg');
-    if(first) first.focus();
+    showChoice();
   }
   function release(){
     stage.classList.remove('is-active');
     wheel.classList.remove('has-pick');
     wheel.querySelectorAll('.seg').forEach(function(p){ p.classList.remove('is-pick'); });
+    journeyEl.hidden=true; clearNarrow(); wheel.style.pointerEvents='';
     picked=-1; cast(null);
     engageBtn.hidden=false; releaseBtn.hidden=true;
     renderPanel('idle');
@@ -450,6 +578,7 @@
   }
   function pick(i){
     picked=i; var s=SEGMENTS[i];
+    journeyEl.hidden=true; clearNarrow();
     wheel.classList.add('has-pick');
     wheel.querySelectorAll('.seg').forEach(function(p,j){ p.classList.toggle('is-pick', j===i); });
     ring.setAttribute('d', wedgePath(i));
