@@ -31,7 +31,8 @@
   body{margin:0; background:var(--paper); color:var(--ink); font-family:var(--font);
     line-height:1.55; font-size:17px; -webkit-font-smoothing:antialiased}
   :focus-visible{outline:3px solid var(--focus); outline-offset:3px; border-radius:8px}
-  .wrap{max-width:640px; margin:0 auto; padding:24px 18px 60px; text-align:center}
+  .wrap{max-width:640px; margin:0 auto; padding:24px 18px 60px; text-align:center;
+    position:relative; z-index:1}
   h1{font-family:var(--display); font-weight:700; font-size:2.4rem; margin:.1em 0 .05em;
      letter-spacing:.01em; line-height:1}
   .lede{color:var(--ink-soft); max-width:46ch; margin:0 auto 6px; font-size:1.02rem}
@@ -63,7 +64,13 @@
   .wheel .seg{cursor:pointer; transition:opacity .35s ease}
   .wheel .seg:hover{opacity:.88}
   /* focus follows the wedge shape (no rectangular outline box) */
-  .wheel .seg:focus-visible{outline:none; stroke:#fff; stroke-width:3}
+  .wheel .seg:focus{outline:none}
+  .wheel .seg:focus-visible{outline:none; stroke:#fff; stroke-width:3.5}
+  .wheel .seglabel{fill:#fff; font-family:var(--font); font-weight:800; font-size:15px;
+    letter-spacing:.01em; pointer-events:none; paint-order:stroke;
+    stroke:rgba(0,0,0,.14); stroke-width:2px}
+  .wheel.narrowed .seglabel{opacity:.35}
+  .wheel.narrowed .seglabel.is-candidate{opacity:1}
   .wheel.has-pick .seg{opacity:.5}
   .wheel.has-pick .seg.is-pick{opacity:1}
   /* climate segments: a steady, breathing glow — the conditions, always lit,
@@ -77,9 +84,11 @@
   .wheel .ring{fill:none; stroke:var(--ink); stroke-width:4; opacity:0;
     transition:opacity .35s ease}
   .wheel.has-pick .ring{opacity:.9}
-  .wheel .gnomon-shadow{fill:rgba(40,30,20,.26);
-    transition:transform .8s cubic-bezier(.34,1.2,.4,1); transform-origin:center}
-  .wheel .gnomon{transition:transform .8s cubic-bezier(.34,1.2,.4,1); transform-origin:center}
+  .wheel .gnomon-shadow{fill:rgba(40,30,20,.26); opacity:0;
+    transition:transform .8s cubic-bezier(.34,1.2,.4,1), opacity .4s ease; transform-origin:center}
+  .wheel .gnomon{opacity:0;
+    transition:transform .8s cubic-bezier(.34,1.2,.4,1), opacity .4s ease; transform-origin:center}
+  .wheel.has-pick .gnomon, .wheel.has-pick .gnomon-shadow{opacity:1}
   .wheel .hub{fill:var(--card); stroke:var(--ink); stroke-width:2.5}
 
   /* ---- readout under the wheel ---- */
@@ -120,10 +129,40 @@
     padding:13px 16px; font-size:.94rem; color:var(--ink-soft)}
   .climate-note b{color:var(--ink)}
 
-  /* soft stand-in for "the weather casts over the garden" — garden.html does the
-     real version; here it's a faint backdrop wash so the standalone demo is alive */
-  .weatherwash{position:fixed; inset:0; z-index:-1; opacity:0; pointer-events:none;
-    transition:opacity 1.1s ease, background 1.1s ease}
+  /* the weather, cast over the whole scene behind the dial — soft, slow, opacity
+     only (AuDHD-calm). Content sits above it (.wrap z-index 1). */
+  .weatherwash{position:fixed; inset:0; z-index:0; pointer-events:none; opacity:0;
+    transition:opacity 1s ease}
+  .weatherwash.on{opacity:1}
+  .ww{position:absolute; inset:0; opacity:0; transition:opacity 1s ease}
+  .weatherwash[data-w="fog"]   .ww-fog,
+  .weatherwash[data-w="rain"]  .ww-rain,
+  .weatherwash[data-w="storm"] .ww-storm,
+  .weatherwash[data-w="sun"]   .ww-sun,
+  .weatherwash[data-w="haze"]  .ww-haze,
+  .weatherwash[data-w="flash"] .ww-flash{opacity:1}
+  .ww-fog{background:#c9ccc9; animation:wwdrift 12s ease-in-out infinite}
+  .weatherwash[data-w="fog"]   .ww-fog{opacity:.46}
+  .ww-haze{background:radial-gradient(120% 90% at 50% 35%,#d9d36a,#b9a83f);
+    mix-blend-mode:multiply; animation:wwdrift 13s ease-in-out infinite}
+  .weatherwash[data-w="haze"]  .ww-haze{opacity:.4}
+  .ww-rain{background:linear-gradient(#7e8a99,#9fb0c0)}
+  .weatherwash[data-w="rain"]  .ww-rain{opacity:.3}
+  .ww-rain::after{content:"";position:absolute;inset:-20%;
+    background:repeating-linear-gradient(10deg,transparent 0 13px,rgba(222,232,242,.55) 13px 15px);
+    animation:wwrain 1.1s linear infinite}
+  .ww-storm{background:#2c2f3a}
+  .weatherwash[data-w="storm"] .ww-storm{opacity:.4}
+  .ww-storm::after{content:"";position:absolute;inset:0;
+    background:radial-gradient(60% 40% at 50% 18%,#fff6c8,transparent);
+    opacity:0;animation:wwflash 6s ease-in-out infinite}
+  .ww-sun{background:radial-gradient(60% 55% at 76% 18%,#ffe7a0,transparent)}
+  .weatherwash[data-w="sun"]   .ww-sun{opacity:.7}
+  .ww-flash{background:radial-gradient(70% 55% at 50% 30%,#fff,transparent)}
+  .weatherwash[data-w="flash"] .ww-flash{opacity:.28}
+  @keyframes wwdrift{0%,100%{transform:translateX(-3%)}50%{transform:translateX(3%)}}
+  @keyframes wwrain{to{transform:translateY(15px)}}
+  @keyframes wwflash{0%,86%,100%{opacity:0}90%{opacity:.45}94%{opacity:.12}}
 
   /* embedded in the garden (iframe / ?embed): drop the standalone page chrome */
   body.embed .wrap{padding-top:6px; padding-bottom:20px}
@@ -173,6 +212,7 @@
     .wheel .gnomon,.wheel .gnomon-shadow{transition:none}
     .wheel .glow{animation:none !important; opacity:.18}
     .weatherwash{transition:opacity .3s ease}
+    .ww-fog,.ww-haze,.ww-rain::after,.ww-storm::after{animation:none !important}
   }
 </style>
 </head>
@@ -207,7 +247,10 @@
     <button class="btn ghost" id="release" type="button" hidden>back to the garden</button>
   </div>
 
-  <div class="weatherwash" id="wash" aria-hidden="true"></div>
+  <div class="weatherwash" id="wash" aria-hidden="true">
+    <div class="ww ww-fog"></div><div class="ww ww-rain"></div><div class="ww ww-storm"></div>
+    <div class="ww ww-sun"></div><div class="ww ww-haze"></div><div class="ww ww-flash"></div>
+  </div>
   <p class="sr-only" id="srSummary"></p>
 
   <div class="todo">
@@ -256,8 +299,8 @@
        a:{t:'contentment', b:'still warmth'},
        c:{t:'joy', b:'expansive energy'},
        note:'safety and satisfaction, or a bright surprise.'}},
-    {key:'disgust', label:'disgust', color:'#2d9846', mode:'weather', kind:'fog',
-     line:'drifting fog — it clouds the view, then lifts.',
+    {key:'disgust', label:'disgust', color:'#2d9846', mode:'weather', kind:'haze',
+     line:'a thick yellow haze — humid and reeking; you just want out of it.',
      sens:'nausea, constriction, facial tension', regions:['gut','throat','face'], arousal:55,
      pair:{title:'guilt vs shame',
        a:{t:'guilt', b:'stomach drop, restlessness'},
@@ -270,8 +313,8 @@
        a:{t:'grief', b:'waves, chest tightness'},
        c:{t:'depression', b:'flat, diffuse numbness'},
        note:'a loss moving through in waves, or a sustained flat low.'}},
-    {key:'fear', label:'fear', color:'#5b4a9e', mode:'weather', kind:'cold',
-     line:'a cold front — loud, but already leaving.',
+    {key:'fear', label:'fear', color:'#5b4a9e', mode:'weather', kind:'fog',
+     line:'fog — worry is a thin mist; panic, a fog so thick you can’t see what’s real.',
      sens:'chills, muscle tension, racing heart, shallow breath', regions:['chest','limbs','gut'], arousal:85,
      pair:{title:'anxiety vs excitement',
        a:{t:'anxiety', b:'constriction'},
@@ -337,6 +380,14 @@
     wheel.appendChild(el('line',{x1:CX,y1:CY,x2:p[0].toFixed(2),y2:p[1].toFixed(2),class:'divider'}));
   }
   // (removed the cardinal rim pills — they read as stray "0"s)
+  // segment labels — name each feeling on its wedge
+  SEGMENTS.forEach(function(s,i){
+    var c = pt(i*STEP, R*0.6);
+    var t = el('text',{x:c[0].toFixed(1), y:c[1].toFixed(1), class:'seglabel',
+      'data-i':i, 'text-anchor':'middle', 'dominant-baseline':'central', 'aria-hidden':'true'});
+    t.textContent = s.label;
+    wheel.appendChild(t);
+  });
   // selection highlight ring (sits above segments)
   var ring = el('path',{class:'ring', d:''});
   wheel.appendChild(ring);
@@ -442,11 +493,11 @@
            : 'This is climate, not weather — a steady condition you tend, not one that passes. ')+s.line;
   }
 
-  // "cast the weather" — standalone backdrop wash; garden.html does the real cast
+  // "cast the weather" — soft weather behind the whole scene, keyed to the kind
   function cast(s){
-    if(!s){ wash.style.opacity='0'; return; }
-    wash.style.background='radial-gradient(120% 90% at 50% 0%, '+s.color+'22, '+s.color+'08 60%, transparent)';
-    wash.style.opacity='1';
+    if(!s || s.mode!=='weather' || !s.kind){ wash.classList.remove('on'); wash.removeAttribute('data-w'); return; }
+    wash.setAttribute('data-w', s.kind);
+    wash.classList.add('on');
   }
 
   /* ================= THE GUIDED WALK (body-first entry) =================
@@ -479,7 +530,7 @@
   var sel = {regions:[], qualities:[]};
   function clearNarrow(){
     wheel.classList.remove('narrowed');
-    wheel.querySelectorAll('.seg').forEach(function(p){ p.classList.remove('is-candidate'); });
+    wheel.querySelectorAll('.seg, .seglabel').forEach(function(p){ p.classList.remove('is-candidate'); });
   }
   function chipRow(items, type){
     return '<div class="chiprow">'+ items.map(function(it){
@@ -550,6 +601,7 @@
     wheel.classList.add('narrowed');
     var keys={}; top.forEach(function(o){ keys[o.i]=1; });
     wheel.querySelectorAll('.seg').forEach(function(p,j){ p.classList.toggle('is-candidate', !!keys[j]); });
+    wheel.querySelectorAll('.seglabel').forEach(function(p,j){ p.classList.toggle('is-candidate', !!keys[j]); });
     panel.className='panel';
     panel.innerHTML =
       '<div class="kicker">this might be</div>'+
