@@ -45,7 +45,7 @@ Each emotion is a **range from mild → intense**, not one icon. The granular na
 | Feeling | Weather | Mild → Intense |
 |---|---|---|
 | **Anger** | thunder & lightning | heat-haze simmer → full storm / lightning strike |
-| **Fear** | **fog** | thin mist (unease) → thick fog (panic) — *the alarm gone haywire: shapes in the mist that may not be there, can't see what's real* |
+| **Fear** | **fog** | **worry = thin mist** (you can still see through it) → builds → **panic = heavy fog** (so thick you can't see what's real). The alarm gone haywire: the denser the fog, the more the shapes in it look like threats — fog-thickness = how much the fear is distorting your read. |
 | **Sadness** | rain | drizzle (melancholy) → downpour (grief) |
 | **Enjoyment** | sun | sunny intervals (contentment) → blazing sun (happy) → rainbow (ecstasy) |
 | **Disgust** | a thick, yellow, humid haze — heavy with odour | the air gone *foul*: sickly-yellow, clammy/humid, **reeking** (disgust = the smell/taste system — the one weather you meet through your nose). Oppressive; you want to hold your breath and get out. Gradient: faint off-smell (distaste) → choking yellow smog (revulsion). **Distinct from fear's fog:** fear = grey/cold/can't-see; disgust = yellow/humid/reeks. |
