@@ -25,6 +25,9 @@ _Last updated 2026-06-15._
 - [ ] **Seeking = the sun** — the always-there light/drive that casts the shadow (present in the whole instrument, not a slice).
 - [ ] **Care = the nurturing pour + a between-gardens beat** — the watering can as nurture; relational warmth across the fence.
 
+## 🔗 Intensity handshake (dial → garden)
+- [ ] **Dial: send `detail.intensity` (0–1)** on `sundial:select`. The garden's `cast()` already reads it (defaults 0.5), so until the dial sends it, every weather renders mid-intensity. Source it from the dial's **radius** (mild→intense, MODEL §2) and/or the coarse read. Then worry-mist vs panic-fog actually differ in the garden.
+
 ## 🔵 Garden / integration polish
 - [ ] **Rain reads as "fireworks"** — streaks too thick/bright/sparse + comet-gradient. Make it a continuous fall (thinner, more, lower opacity, full-height) or swap to the even repeating-gradient technique from `intensity-demo.html`.
 - [ ] **Sweep all garden-scene weathers for contrast** (fog, storm, sun, the new yellow haze for disgust) — make each read clearly over the bright scene, same pass as rain.
