@@ -6,7 +6,9 @@
 <title>your hands — skin tone</title>
 <style>
   :root{ --paper:#f5efe2; --card:#fbf7ee; --ink:#3b4136; --ink-soft:#6c715f; --line:#dacfb6;
-         --font:"Atkinson Hyperlegible",system-ui,sans-serif; --display:"Caveat",cursive; }
+         --font:"Atkinson Hyperlegible",system-ui,sans-serif; --display:"Caveat",cursive;
+         --skin-filter: none;
+  }
   body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--font);
     text-align:center;padding:24px 16px 60px}
   h1{font-family:var(--display);font-size:2.1rem;margin:.1em 0}
@@ -17,8 +19,7 @@
     background:linear-gradient(#bfe0f0 0%,#9fd07a 60%,#7fb85f 100%);
     display:flex;align-items:flex-end;justify-content:center;overflow:hidden}
   .hands{width:74%;height:auto;margin-bottom:-2%;
-    /* the skin tone — a CSS filter shifts the whole shaded image together */
-    filter:var(--skin-filter,none);transition:filter .35s ease}
+   filter:var(--skin-filter,none);transition:filter .35s ease}
 
   .pickwrap{margin:16px auto 0;max-width:420px}
   .q{font-weight:800;margin:0 0 8px}
