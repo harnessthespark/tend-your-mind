@@ -100,3 +100,16 @@ The dial now dispatches these `kind`s: `storm`(anger) · `fog`(**fear**, was col
 2. **Intensity = how much weather** (MODEL §2) — scale each cast by intensity (opacity/density), mild→intense. `intensity-demo.html` shows the technique + endpoints.
 3. **First-person decision** (MODEL §8): the user is the gardener — **hands, not an avatar**. The third-person **gardener figure is coming out of the scene** (Lisa's redraw). Your storm/calm `#gardner` fade handling will change when the scene's redrawn — coordinate then.
 4. **Sensation→place map** (§6) — still NEEDS LISA; place-glows stay placeholder until then.
+
+### ✅ Actions (do these, in order)
+1. **Add a `haze` renderer** (disgust) — thick yellow, humid, reeking; opacity = thickness. *Highest: disgust casts nothing right now.*
+2. **Fix rain "fireworks"** — make it a continuous fall (thinner · more · lower-opacity · full-height), or swap to the even repeating-gradient technique in `intensity-demo.html`.
+3. **Visibility sweep** — make `fog · storm · sun · flash` (+ the new `haze`) each read clearly over the bright `calm-garden.png`, same pass as rain.
+4. **Tune `fog` for fear** — worry = thin mist → panic = heavy fog (thickness = how distorted the read is).
+5. **Rework `flash`/surprise as a fork** — good → sun-through-cloud, bad → **hail**; brief, then hands on.
+6. **Add intensity scaling** — every weather scales mild→intense by opacity/density (MODEL §2). Technique + endpoints in `intensity-demo.html`. (Dial can pass an intensity value later; default mid for now.)
+7. **Retire the dead `w-seeking` / `w-care` climate branches** — the wheel is 6 weathers only now.
+8. **(After Lisa's first-person redraw)** update the `#gardner` present/stepped-back fade — the third-person figure is leaving the scene.
+9. **(Blocked on Lisa)** wire the real **sensation→place map** (§6) into the `CAST` config when she supplies the geography.
+
+**Do NOT undo:** option A (the screen-6 sundial iframe + postMessage bridge), the `garden.weather` save on cast, or the rain contrast fix.
