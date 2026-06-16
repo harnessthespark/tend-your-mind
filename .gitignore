@@ -87,3 +87,7 @@ clouds.png
 shed.png
 water-tools.png
 assets/finalhero-garden.svg
+
+# --- IDE + learning scratch ---
+.idea/
+learn-picker.html
