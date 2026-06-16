@@ -85,7 +85,7 @@ For alexithymia: start from the **body you can notice**, not the **name you can'
 
 Each rung adds **one** small thing; chip-count stays low throughout (principles 1 + 4). A quality only has to discriminate *within* a coarse quadrant (hot vs cold to split anger/fear), not across all six.
 
-**Built:** choice → coarse (autonomic 3-state + valence) → where → what (progressive reveal) → narrow → pick + drill-down. **To do:** tell-apart beat (5 — promote the granular pair to its own step), express beat (6 — "what's it asking for / how would you say it").
+**Built — the full walk:** choice → coarse (autonomic 3-state + valence) → where → what (progressive reveal) → narrow → pick → **read** (body-map + sensations + arousal) → **tell-apart** (choose the granular twin) → **express** (per-side *it's asking for* + *you might say*) → *let it move on*. The `ask`/`say` clinical lines are seeded + editable (Lisa to redline). Surprise has no pair → read → express (the good/bad fork).
 
 ---
 

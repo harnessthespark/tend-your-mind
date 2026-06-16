@@ -129,6 +129,23 @@
     padding:13px 16px; font-size:.94rem; color:var(--ink-soft)}
   .climate-note b{color:var(--ink)}
 
+  /* tell-apart — choose the granular twin */
+  .apart{display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:14px}
+  @media(max-width:420px){.apart{grid-template-columns:1fr}}
+  .apartbtn{font-family:inherit; text-align:left; cursor:pointer; background:var(--card);
+    border:1.5px solid var(--line); border-radius:var(--radius); padding:12px 14px; color:var(--ink);
+    transition:border-color .15s, transform .12s}
+  .apartbtn:hover{border-color:var(--ink-faint); transform:translateY(-1px)}
+  .apartbtn b{display:block; font-size:1.05rem}
+  .apartbtn span{font-size:.86rem; color:var(--ink-soft)}
+  /* express — what it's asking + how you'd say it */
+  .express{text-align:left; margin-top:14px; background:var(--card); border:1.5px solid var(--line);
+    border-radius:var(--radius); padding:14px 16px}
+  .express p{margin:0 0 9px} .express p:last-child{margin-bottom:0}
+  .express b{display:block; font-size:.74rem; letter-spacing:.06em; text-transform:uppercase;
+    color:var(--ink-faint); font-weight:800; margin-bottom:1px}
+  .ex-say i{color:var(--ink-soft); font-size:1.02rem}
+
   /* the weather, cast over the whole scene behind the dial — soft, slow, opacity
      only (AuDHD-calm). Content sits above it (.wrap z-index 1). */
   .weatherwash{position:fixed; inset:0; z-index:0; pointer-events:none; opacity:0;
@@ -289,42 +306,48 @@
     {key:'anger', label:'anger', color:'#e0432a', mode:'weather', kind:'storm',
      line:'a thunderhead — burns hot, then blows over.',
      sens:'heat, pressure, tension, jaw clenching', regions:['face','hands','chest'], arousal:88,
+     say:'I’m angry because ___. what I needed was ___.',
      pair:{title:'frustration vs anger',
-       a:{t:'frustration', b:'pressure without release'},
-       c:{t:'anger', b:'heat, energy surge'},
+       a:{t:'frustration', b:'pressure without release', ask:'another way at the blocked thing — or to let it go.'},
+       c:{t:'anger', b:'heat, energy surge', ask:'a boundary named — something that matters got crossed.'},
        note:'a blocked goal, or a real injustice — the body tells them apart.'}},
     {key:'joy', label:'joy', color:'#e7b91f', mode:'weather', kind:'sun',
      line:'bright, open sky — even sunshine is in motion.',
      sens:'warmth, lightness, energy, tingling', regions:['full'], arousal:90,
+     say:'this feels good — I’d love to ___.',
      pair:{title:'contentment vs joy',
-       a:{t:'contentment', b:'still warmth'},
-       c:{t:'joy', b:'expansive energy'},
+       a:{t:'contentment', b:'still warmth', ask:'nothing to chase — just rest in it.'},
+       c:{t:'joy', b:'expansive energy', ask:'to share it, or let it expand.'},
        note:'safety and satisfaction, or a bright surprise.'}},
     {key:'disgust', label:'disgust', color:'#2d9846', mode:'weather', kind:'haze',
      line:'a thick yellow haze — humid and reeking; you just want out of it.',
      sens:'nausea, constriction, facial tension', regions:['gut','throat','face'], arousal:55,
+     say:'this doesn’t sit right with me. I need ___.',
      pair:{title:'guilt vs shame',
-       a:{t:'guilt', b:'stomach drop, restlessness'},
-       c:{t:'shame', b:'full-body heat, collapse urge'},
+       a:{t:'guilt', b:'stomach drop, restlessness', ask:'to repair the specific thing you did.'},
+       c:{t:'shame', b:'full-body heat, collapse urge', ask:'a reminder you’re not the bad thing — shame lies.'},
        note:'self-conscious feelings, parked here honestly — shame is close to self-directed disgust; guilt shares the gut.'}},
     {key:'sadness', label:'sadness', color:'#2f63b3', mode:'weather', kind:'rain',
      line:'steady rain — heavy to stand in, and it waters things.',
      sens:'heaviness, tightness, fatigue, throat constriction', regions:['chest','throat','limbs'], arousal:25,
+     say:'I’m sad about ___. I think I need ___.',
      pair:{title:'grief vs depression',
-       a:{t:'grief', b:'waves, chest tightness'},
-       c:{t:'depression', b:'flat, diffuse numbness'},
+       a:{t:'grief', b:'waves, chest tightness', ask:'to let the wave move through — and be comforted.'},
+       c:{t:'depression', b:'flat, diffuse numbness', ask:'gentleness and support — this is shutdown, not laziness.'},
        note:'a loss moving through in waves, or a sustained flat low.'}},
     {key:'fear', label:'fear', color:'#5b4a9e', mode:'weather', kind:'fog',
      line:'fog — worry is a thin mist; panic, a fog so thick you can’t see what’s real.',
      sens:'chills, muscle tension, racing heart, shallow breath', regions:['chest','limbs','gut'], arousal:85,
+     say:'I’m scared about ___. I need a moment to see if it’s real.',
      pair:{title:'anxiety vs excitement',
-       a:{t:'anxiety', b:'constriction'},
-       c:{t:'excitement', b:'expansiveness'},
+       a:{t:'anxiety', b:'constriction', ask:'to check you’re safe — is the threat real, or the fog?'},
+       c:{t:'excitement', b:'expansiveness', ask:'to move toward it — this is anticipation, not danger.'},
        note:'the same racing body — uncertain threat, or anticipated good.'}},
     {key:'surprise', label:'surprise', color:'#cc3f86', mode:'weather', kind:'flash',
      line:'a sudden flash — the briefest weather, then gone.',
      sens:'sudden alertness, widening, brief freeze', regions:['face','chest'], arousal:97,
-     pair:null}
+     say:'give me a second — I’m working out if this is good or bad.',
+     ask:'a beat to find out — good, or bad?', pair:null}
   ];
 
   var N = SEGMENTS.length, STEP = 360/N;
@@ -492,6 +515,99 @@
     srSummary.textContent='You chose '+s.label+'. '+
       (isW ? 'It is a weather — it passes. Felt in '+(s.regions||[]).join(', ')+'. '
            : 'This is climate, not weather — a steady condition you tend, not one that passes. ')+s.line;
+  }
+
+  /* ---- the post-pick walk: read → tell apart → express ---- */
+  function renderRead(s){
+    panel.className='panel is-weather';
+    panel.innerHTML =
+      head("today's weather", s.label, s.color, s.line)+
+      '<div class="detail">'+
+        '<div class="bm">'+bodySVG(s.regions, s.color)+'<span class="bm-cap">where it lands</span></div>'+
+        '<div class="info">'+
+          '<p class="sens"><b>in the body</b>'+esc(s.sens)+'</p>'+
+          '<div class="ar-row"><span class="ar-lab">still</span>'+
+            '<div class="arousal"><span style="width:'+s.arousal+'%; background:'+s.color+'"></span></div>'+
+            '<span class="ar-lab">activated</span></div>'+
+        '</div>'+
+      '</div>'+
+      '<div class="choice"><button class="btn" type="button" id="jOn"></button></div>';
+    var b=panel.querySelector('#jOn');
+    if(s.pair){ b.textContent='tell them apart →'; b.addEventListener('click', function(){ showTellApart(s); }); }
+    else if(s.key==='surprise'){ b.textContent='which way did it break? →'; b.addEventListener('click', function(){ showSurpriseFork(s); }); }
+    else { b.textContent='what’s it asking? →'; b.addEventListener('click', function(){ showExpress(s, null); }); }
+    srSummary.textContent='You chose '+s.label+'. A weather — it passes. Felt in '+(s.regions||[]).join(', ')+'.';
+  }
+  function showTellApart(s){
+    var p=s.pair;
+    panel.className='panel';
+    panel.innerHTML =
+      head('telling them apart', p.title, s.color, p.note)+
+      '<div class="apart">'+
+        '<button class="apartbtn" type="button" data-side="a"><b>'+esc(p.a.t)+'</b><span>'+esc(p.a.b)+'</span></button>'+
+        '<button class="apartbtn" type="button" data-side="c"><b>'+esc(p.c.t)+'</b><span>'+esc(p.c.b)+'</span></button>'+
+      '</div>'+
+      '<div class="choice"><button class="btn ghost" type="button" id="jBack2">← back</button></div>';
+    panel.querySelectorAll('.apartbtn').forEach(function(btn){
+      btn.addEventListener('click', function(){ showExpress(s, btn.getAttribute('data-side')); });
+    });
+    panel.querySelector('#jBack2').addEventListener('click', function(){ renderRead(s); });
+  }
+  function showExpress(s, side){
+    var so = side ? (side==='a'?s.pair.a:s.pair.c) : null;
+    var name = so ? so.t : s.label;
+    var ask = so ? so.ask : (s.ask || 'to be noticed, and to pass.');
+    panel.className='panel';
+    panel.innerHTML =
+      head('what it’s asking', name, s.color, '')+
+      '<div class="express">'+
+        '<p class="ex-ask"><b>it’s asking for</b>'+esc(ask)+'</p>'+
+        '<p class="ex-say"><b>you might say</b><i>“'+esc(s.say)+'”</i></p>'+
+      '</div>'+
+      '<div class="choice"><button class="btn" type="button" id="jPass">let it move on</button>'+
+        (side?'<button class="btn ghost" type="button" id="jBack3">← back</button>':'')+'</div>';
+    panel.querySelector('#jPass').addEventListener('click', release);
+    var bk=panel.querySelector('#jBack3'); if(bk) bk.addEventListener('click', function(){ showTellApart(s); });
+    srSummary.textContent = name+' is asking for '+ask+'. You might say: '+s.say;
+  }
+  // surprise is the fork — the dial owns the appraisal and re-casts the resolved weather
+  function showSurpriseFork(s){
+    panel.className='panel';
+    panel.innerHTML =
+      head('which way did it break?', 'good, or bad?', s.color,
+        'surprise is the fork — the jolt lands first, then you read it.')+
+      '<div class="apart">'+
+        '<button class="apartbtn" type="button" data-fork="good"><b>good</b><span>sun through the cloud</span></button>'+
+        '<button class="apartbtn" type="button" data-fork="bad"><b>bad</b><span>a sudden hail — sharp, out of nowhere</span></button>'+
+      '</div>'+
+      '<div class="choice"><button class="btn ghost" type="button" id="jBack2">← back</button></div>';
+    panel.querySelectorAll('.apartbtn').forEach(function(btn){
+      btn.addEventListener('click', function(){ resolveSurprise(s, btn.getAttribute('data-fork')); });
+    });
+    panel.querySelector('#jBack2').addEventListener('click', function(){ renderRead(s); });
+  }
+  function resolveSurprise(s, fork){
+    var kind = fork==='good' ? 'sunbreak' : 'hail';
+    // dial's own backdrop (it has no sunbreak/hail layer — approximate)
+    wash.setAttribute('data-w', fork==='good' ? 'sun' : 'flash'); wash.classList.add('on');
+    // re-dispatch the RESOLVED weather so the garden casts sunbreak / hail
+    var detail={key:s.key, label:s.label, mode:'weather', kind:kind, regions:s.regions||[], color:s.color};
+    document.dispatchEvent(new CustomEvent('sundial:select', {detail:detail}));
+    if(EMBED && window.parent && window.parent!==window){
+      try{ window.parent.postMessage({source:'sundial', detail:detail}, '*'); }catch(e){}
+    }
+    var ask = fork==='good' ? 'to be savoured — let the good news land.'
+                            : 'a steady breath — it was sharp, and it’s already passing.';
+    panel.className='panel';
+    panel.innerHTML =
+      head('what it’s asking', fork==='good' ? 'a good surprise' : 'a bad surprise', s.color, '')+
+      '<div class="express"><p class="ex-ask"><b>it’s asking for</b>'+esc(ask)+'</p>'+
+        '<p class="ex-say"><b>you might say</b><i>“'+esc(s.say)+'”</i></p></div>'+
+      '<div class="choice"><button class="btn" type="button" id="jPass">let it move on</button>'+
+        '<button class="btn ghost" type="button" id="jBack3">← back</button></div>';
+    panel.querySelector('#jPass').addEventListener('click', release);
+    panel.querySelector('#jBack3').addEventListener('click', function(){ showSurpriseFork(s); });
+    srSummary.textContent='A '+fork+' surprise. It is asking for '+ask;
   }
 
   // "cast the weather" — soft weather behind the whole scene, keyed to the kind
@@ -698,7 +814,7 @@
     var ang = i*STEP;                              // swing gnomon + shadow to the pick
     gShadow.style.transform='rotate('+ang+'deg)';
     gnomon.style.transform='rotate('+ang+'deg)';
-    renderPanel(s);
+    renderRead(s);
     cast(s);
     // integration contract: garden.html listens for this to cast the weather +
     // light the sensation→garden-place zones (sensation map is NEEDS LISA there)
