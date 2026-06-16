@@ -143,7 +143,9 @@ So the **Potting Shed gains a second role beside memory: the vantage point.** Po
 - Cerebellum: **woven into the Gardener** as the green thumb (not its own character).
 - Insula = sundial: **say it once, softly** (coach-note aside).
 - **Perspective: "step into the shed" as a regulation move** (§7).
-- **First-person embodiment: the user IS the gardener — show their *hands*, not a fixed avatar.** Solves diversity by removing the problem (the hands are *yours*; skin tone = optional recolour layer). Unifies gardener (PFC, the deciding you) + hands (cerebellum, the green thumb) + shed (your vantage). Tending = your hands doing each verb. "The gardener gets locked out" becomes *felt* — **you** can't act when the alarm blares — not a character stepping back. `inside-shed.png` is already the first-person view.
+- **The gardener stays (it's the key character — your PFC-self), made deliberately identity-ambiguous.** Levers: **brim low so the face sits in shadow** (tending posture, minimal/non-specific features), **long gloves + rolled sleeves + boots** so almost no skin shows (the race-neutral lever — works by showing little, not by picking a "neutral" tone), loose dungarees, hair tucked, neutral build. **Ambiguity = *unreadable*, not a "neutral default"** (a generic figure still defaults to white/male in the reading; hiding the markers is what makes it inclusive — everyone projects themselves in).
+  - **Two distances, one person:** wide scene = the ambiguous gardener (your avatar); **close-up tending = that same figure's hands** (reads first-person *because* the avatar is deliberately you-shaped). The hands idea survives — as the avatar's hands.
+  - Keeps the warmth + the "gardener gets locked out" beat (there's still a figure to be locked out). `inside-shed.png` remains the first-person vantage.
 
 **Still genuinely open:**
 - SIGNATURE cells to verify with a clinician: joy = warm/light; lump-in-throat / breathless additions (§6).
