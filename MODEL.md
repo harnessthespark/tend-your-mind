@@ -143,6 +143,7 @@ So the **Potting Shed gains a second role beside memory: the vantage point.** Po
 - Cerebellum: **woven into the Gardener** as the green thumb (not its own character).
 - Insula = sundial: **say it once, softly** (coach-note aside).
 - **Perspective: "step into the shed" as a regulation move** (§7).
+- **First-person embodiment: the user IS the gardener — show their *hands*, not a fixed avatar.** Solves diversity by removing the problem (the hands are *yours*; skin tone = optional recolour layer). Unifies gardener (PFC, the deciding you) + hands (cerebellum, the green thumb) + shed (your vantage). Tending = your hands doing each verb. "The gardener gets locked out" becomes *felt* — **you** can't act when the alarm blares — not a character stepping back. `inside-shed.png` is already the first-person view.
 
 **Still genuinely open:**
 - SIGNATURE cells to verify with a clinician: joy = warm/light; lump-in-throat / breathless additions (§6).

@@ -15,6 +15,12 @@ _Last updated 2026-06-15._
 - [ ] **Tell-apart beat** — promote the granular pair (anxiety vs excitement) to its own step after the pick, not buried in the drill-down.
 - [ ] **Express beat** — "what's it asking for / how would you say it"; needs one `ask` line per feeling.
 
+## 🎨 First-person redraw (gardener = you, hands not avatar)
+- [ ] Take the **third-person gardener figure out of the scene** (you're first-person now).
+- [ ] Draw **first-person hands** for the tending verbs (plant / pull / water / turn the dial), ideally a recolourable skin-tone layer.
+- [ ] Rework "the gardener gets locked out" as a **felt, first-person** beat (you can't act) rather than a figure stepping back.
+- [ ] Open scope: full **first-person POV throughout**, or **hands for actions** + keep the wide "meet your garden" as a third-person establishing shot (no fixed gardener)?
+
 ## 🟢 Seeking & Care homes (off the wheel)
 - [ ] **Seeking = the sun** — the always-there light/drive that casts the shadow (present in the whole instrument, not a slice).
 - [ ] **Care = the nurturing pour + a between-gardens beat** — the watering can as nurture; relational warmth across the fence.
