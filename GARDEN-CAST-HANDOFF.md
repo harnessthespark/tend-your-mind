@@ -76,3 +76,27 @@ Built + verified in `garden.html` (my lane; `sundial.html` untouched). We still 
 - a11y: caption is `role="status" aria-live="polite"` (announces each cast); overlay particles `aria-hidden`; full `prefers-reduced-motion` support (animations off, static soft tint + the words carry it); hidden in print.
 - **Integration note:** the contract event only crosses if the dial dispatches into the *same document* as `garden.html`. If `sundial.html` ends up a separate page/iframe, we'll need a postMessage bridge → re-dispatch as `sundial:select`. For verification without the dial, garden.html exposes `window.__sundialCast(detail)`.
 - **Still NEEDS LISA:** the sensation→garden-place map (§6).
+
+---
+
+## Updates 2026-06-16 — for the cast lane (from the sundial session)
+
+`MODEL.md` is now the source of truth for the whole emotion model — **read it first.** Key changes that land in *your* lane (`garden.html` cast + scene):
+
+### What I changed in garden.html (don't undo)
+- **Option A**: the sundial is now embedded in **screen 6** as "today's weather" (an `<iframe src="sundial.html?embed=1">`) + a small **postMessage bridge** that re-dispatches `sundial:select` onto garden's document — so your cast listener fires. Verified end-to-end.
+- The `sundial:select` listener now also does `garden.weather = e.detail; save()`. Screen-8 map zone shows today's weather (was season).
+- **Rain cast fixed**: streaks were blue on blue sky (invisible). Now `.w-rain` greys the sky to overcast + near-white streaks, 28 not 14. ⚠️ Still reads a bit "fireworks" — see TODO (make it a continuous fall, or use the even repeating-gradient technique in `intensity-demo.html`).
+
+### New weather set (MODEL §2) — update the cast to match
+The dial now dispatches these `kind`s: `storm`(anger) · `fog`(**fear**, was cold) · `rain`(sadness) · `sun`(joy/enjoyment) · `haze`(**disgust**, NEW) · `flash`(surprise).
+- ⚠️ **`haze` has no renderer yet** — disgust currently casts nothing. Add it: a **thick, yellow, humid, reeking** layer (opacity = thickness). Distinct from fear's grey fog.
+- **fear = fog** now (not cold): worry = thin mist → panic = heavy fog (fog-thickness = how distorted the read is). Tune the existing fog for this gradient.
+- **surprise = a fork**, not one weather: good → sun-through-cloud, bad → **hail**. Brief, then hands on.
+- Seeking/Care climate casts are now **dead** (both came off the wheel — it's 6 weathers only). Their cast branches can stay dormant or be removed.
+
+### Cross-cutting work waiting in your lane
+1. **Visibility sweep** — do the rain contrast pass for **fog, storm, sun, haze, flash** too, so each reads over the bright `calm-garden.png`.
+2. **Intensity = how much weather** (MODEL §2) — scale each cast by intensity (opacity/density), mild→intense. `intensity-demo.html` shows the technique + endpoints.
+3. **First-person decision** (MODEL §8): the user is the gardener — **hands, not an avatar**. The third-person **gardener figure is coming out of the scene** (Lisa's redraw). Your storm/calm `#gardner` fade handling will change when the scene's redrawn — coordinate then.
+4. **Sensation→place map** (§6) — still NEEDS LISA; place-glows stay placeholder until then.
