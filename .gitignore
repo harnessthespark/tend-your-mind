@@ -97,3 +97,8 @@ assets/finalhero-garden.png
 assets/gardener-*.svg
 assets/gardener-*.png
 assets/hands.png
+
+# --- Illustrator export artifacts ---
+assets/finalhero-garden-*.png
+assets/finalhero-garden-web.svg
+assets/calm garden.png
