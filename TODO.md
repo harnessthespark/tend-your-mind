@@ -20,6 +20,8 @@ _Last updated 2026-06-15._
 - [ ] **Care = the nurturing pour + a between-gardens beat** — the watering can as nurture; relational warmth across the fence.
 
 ## 🔵 Garden / integration polish
+- [ ] **Rain reads as "fireworks"** — streaks too thick/bright/sparse + comet-gradient. Make it a continuous fall (thinner, more, lower opacity, full-height) or swap to the even repeating-gradient technique from `intensity-demo.html`.
+- [ ] **Sweep all garden-scene weathers for contrast** (fog, storm, sun, the new yellow haze for disgust) — make each read clearly over the bright scene, same pass as rain.
 - [ ] Optional: weather cast *behind the dial on screen 6* too (currently casts on the screen-1 scene).
 - [ ] Minor: `bear-at-treeline.svg` is missing (the bear falls back to `bear-trim.png`) — pre-existing.
 
