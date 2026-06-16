@@ -91,3 +91,8 @@ assets/finalhero-garden.svg
 # --- IDE + learning scratch ---
 .idea/
 learn-picker.html
+
+# --- gardener working files (sources/iterations — kept local) ---
+assets/finalhero-garden.png
+assets/gardener-*.svg
+assets/gardener-*.png
