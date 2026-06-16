@@ -370,38 +370,50 @@
   /* a faint wash of the dial's own hue, so the cast stays continuous with the sundial */
   .weather-cast .wash{position:absolute; inset:0; background:var(--cast-hue,transparent); opacity:.14;
     mix-blend-mode:multiply}
-  /* sun — a soft warm glow that breathes, never glares */
-  .weather-cast .w-sun{position:absolute; left:50%; top:34%; width:62%; height:62%; transform:translate(-50%,-50%);
-    border-radius:50%; background:radial-gradient(circle, rgba(255,214,120,.55), rgba(255,214,120,0) 68%);
-    animation:cast-breathe 6.5s ease-in-out infinite}
-  /* rain / cold — thin soft streaks, low opacity, unhurried */
-  .weather-cast .streak{position:absolute; top:-14%; width:2px; height:46px; border-radius:2px; opacity:.5}
+  /* MODEL §2: six weathers, each scaling mild→intense by OPACITY/DENSITY via --i (set per-cast,
+     default mid). Motion is transform-based so it never fights the intensity opacity. Endpoints
+     tuned to read over the bright calm-garden.png. Reference: intensity-demo.html. */
+  .weather-cast{--i:.5}
+  /* enjoyment — sun: warm glow grows; a rainbow arcs in only at the intense end */
+  .weather-cast .w-sun{position:absolute; inset:0;
+    background:radial-gradient(54% 54% at 50% 28%, rgba(255,224,138,.92), rgba(255,224,138,0) 70%);
+    opacity:calc(.32 + var(--i)*.58); animation:cast-pulse 7s ease-in-out infinite}
+  .weather-cast .w-sun .rainbow{position:absolute; left:50%; bottom:12%; width:62%; aspect-ratio:2/1;
+    transform:translateX(-50%); border:8px solid; border-bottom:none; border-radius:1000px 1000px 0 0;
+    border-image:linear-gradient(90deg,#e26d5a,#e6b34a,#e7d24a,#5fa85f,#5aa0c8,#7d6bb0) 1;
+    opacity:calc(max(0,(var(--i) - .62))*2.6)}
+  /* sadness — rain: greyed sky (kept from the contrast fix) + many short drops, continuous fall */
   .weather-cast .w-rain{position:absolute; inset:0;
-    background:linear-gradient(rgba(92,102,118,.46), rgba(92,102,118,.12) 52%, transparent 78%)}
-  .weather-cast .w-rain .streak{width:2px; height:56px;
-    background:linear-gradient(rgba(238,244,250,0),rgba(238,244,250,.92)); opacity:.72;
-    animation:cast-fall 2.6s linear infinite}
-  .weather-cast .w-cold .streak{background:linear-gradient(rgba(150,180,210,0),rgba(150,180,210,.55));
-    transform:rotate(16deg); animation:cast-fall 2.8s linear infinite}
-  .weather-cast .w-cold .chill{position:absolute; inset:0; background:rgba(180,205,225,.20);
-    animation:cast-drift 8s ease-in-out infinite}
-  /* fog — a low drifting haze that softens the view */
-  .weather-cast .w-fog{position:absolute; inset:0; background:
-      radial-gradient(120% 60% at 30% 70%, rgba(225,225,210,.55), transparent 60%),
-      radial-gradient(120% 60% at 70% 80%, rgba(220,225,205,.45), transparent 60%);
-    animation:cast-drift 7.5s ease-in-out infinite}
-  /* storm — a darkening that swells and eases (a thunderhead passing), NOT a strobe */
-  .weather-cast .w-storm{position:absolute; inset:0; background:
-      radial-gradient(140% 90% at 50% 0%, rgba(40,38,46,.42), rgba(40,38,46,0) 62%);
-    animation:cast-breathe 5.5s ease-in-out infinite}
-  /* flash — the briefest weather: one soft swell, then handed on (JS clears it) */
-  .weather-cast .w-flash{position:absolute; inset:0; background:rgba(255,245,225,.5);
-    animation:cast-flash 2.4s ease-in-out 1}
-  /* climate (Seeking / Care) — steady, doesn't roll through */
-  .weather-cast .w-seeking{position:absolute; inset:0; background:
-      radial-gradient(120% 110% at 50% 12%, rgba(120,200,150,.34), rgba(120,200,150,0) 70%)}
-  .weather-cast .w-care{position:absolute; left:0; right:0; top:46%; height:30%; background:
-      linear-gradient(rgba(95,200,200,0), rgba(95,200,200,.30), rgba(95,200,200,0))}
+    background:linear-gradient(rgba(70,80,96,.55), rgba(70,80,96,.18) 58%, transparent 82%);
+    opacity:calc(.5 + var(--i)*.5)}
+  .weather-cast .streak{position:absolute; top:-12%; width:2px; height:18px; border-radius:2px}
+  .weather-cast .w-rain .streak{background:linear-gradient(rgba(228,238,248,0),rgba(228,238,248,.95));
+    opacity:calc(.3 + var(--i)*.6); animation:cast-fall 1.5s linear infinite}
+  /* fear — fog: grey, blurred; thickness (opacity) = how distorted the read is. mist → can't-see */
+  .weather-cast .w-fog{position:absolute; inset:-8%; background:#d6dad7;
+    opacity:calc(.12 + var(--i)*.78); filter:blur(2px); animation:cast-drift 9s ease-in-out infinite}
+  /* disgust — haze: thick, yellow, humid, reeking. opacity = thickness. distinct from fear's grey fog */
+  .weather-cast .w-haze{position:absolute; inset:0;
+    background:radial-gradient(120% 92% at 50% 42%, #d8d164, #b09a36);
+    opacity:calc(.14 + var(--i)*.7); mix-blend-mode:multiply; animation:cast-drift 11s ease-in-out infinite}
+  /* anger — storm: a darkening swell; a slow (non-strobe) lightning glow only at the intense end */
+  .weather-cast .w-storm{position:absolute; inset:0; background:#23262f;
+    opacity:calc(var(--i)*.6); animation:cast-pulse 6s ease-in-out infinite}
+  .weather-cast .w-storm .bolt{position:absolute; inset:0;
+    background:radial-gradient(60% 42% at 50% 16%, #fff6c8, transparent);
+    opacity:0; animation:cast-bolt 6.5s ease-in-out infinite}
+  /* surprise — a sudden break in the sky: brief + neutral, then handed on (JS auto-passes) */
+  .weather-cast .w-flash{position:absolute; inset:0; background:rgba(255,246,226,.5);
+    animation:cast-flash 2.2s ease-in-out 1}
+  /* surprise · good (dial may send kind:'sunbreak') — sun peeking through cloud */
+  .weather-cast .w-sunbreak{position:absolute; inset:0; background:
+      radial-gradient(38% 34% at 64% 24%, rgba(255,238,176,.95), transparent 64%),
+      linear-gradient(rgba(150,160,172,.34), transparent 58%);
+    opacity:calc(.5 + var(--i)*.4); animation:cast-pulse 7s ease-in-out infinite}
+  /* surprise · hard (dial may send kind:'hail') — a sudden hail: sharp, out of nowhere, then gone */
+  .weather-cast .w-hail{position:absolute; inset:0; background:rgba(120,134,150,.20)}
+  .weather-cast .w-hail .streak{width:4px; height:7px; border-radius:50%;
+    background:rgba(238,244,252,.95); opacity:.88; animation:cast-fall .7s linear infinite}
   /* sensation → place glows (positions are placeholders — see TODO in JS) */
   .place-glow{position:absolute; width:34%; height:30%; transform:translate(-50%,-50%); border-radius:50%;
     background:radial-gradient(circle, var(--glow,rgba(255,255,255,.5)), transparent 66%);
@@ -419,14 +431,18 @@
     font-family:inherit; font-size:.84rem; font-weight:700; border-radius:999px; padding:4px 12px; cursor:pointer}
   .cast-note .w-move:hover{background:#eef3e6}
   @keyframes cast-breathe{0%,100%{opacity:.5}50%{opacity:.9}}
-  @keyframes cast-fall{0%{transform:translateY(-40px)}100%{transform:translateY(118%)}}
+  /* fall travels a fixed pixel distance (covers the scene) — % would be relative to the drop's own
+     tiny box and barely move (the old "fireworks" stutter). */
+  @keyframes cast-fall{from{transform:translateY(-20px)}to{transform:translateY(460px)}}
   @keyframes cast-drift{0%,100%{transform:translateX(-5%)}50%{transform:translateX(5%)}}
   @keyframes cast-glow{0%,100%{opacity:.30}50%{opacity:.62}}
-  @keyframes cast-flash{0%{opacity:0}28%{opacity:.5}100%{opacity:0}}
+  @keyframes cast-flash{0%{opacity:0}26%{opacity:.5}100%{opacity:0}}
+  @keyframes cast-pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.03)}}
+  @keyframes cast-bolt{0%,84%,100%{opacity:0}88%{opacity:.5}92%{opacity:.12}96%{opacity:.32}}
   @media(prefers-reduced-motion:reduce){
     /* stillness + a steady soft tint; the caption words do the work */
-    .weather-cast .w-sun,.weather-cast .streak,.weather-cast .w-cold .chill,.weather-cast .w-fog,
-    .weather-cast .w-storm,.weather-cast .w-flash,.place-glow{animation:none !important}
+    .weather-cast .w-sun,.weather-cast .w-sunbreak,.weather-cast .w-fog,.weather-cast .w-haze,
+    .weather-cast .w-storm,.weather-cast .w-storm .bolt,.weather-cast .w-flash,.place-glow{animation:none !important}
     .place-glow{opacity:.42}
     .weather-cast .streak{display:none}
   }
@@ -1494,25 +1510,26 @@
 /* ===== cast the sundial's weather onto the garden =====
    We meet the sundial ONLY at the `sundial:select` DOM event (see GARDEN-CAST-HANDOFF.md).
    This block owns garden.html's side; it never touches sundial.html.
-   detail = { key, label, mode:'weather'|'climate', kind:'sun'|'rain'|'cold'|'storm'|'fog'|'flash'|null,
-              regions:[...], color:'#rainbowhue' } */
+   detail = { key, label, mode:'weather', regions:[...], color:'#rainbowhue', intensity?:0..1,
+              kind:'storm'|'fog'|'rain'|'sun'|'haze'|'flash'  (surprise may resolve to 'sunbreak'|'hail') }
+   (Seeking/Care/'cold'/'climate' are retired — MODEL §2: six weathers only.) */
 (function(){
   "use strict";
   function reduced(){ return window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches; }
 
-  /* one editable config object (brief §9): weather + climate framing + sensation→place map */
+  /* one editable config object (brief §9). MODEL §2: six weathers only (Seeking/Care came off the
+     wheel — they aren't weather). Surprise forks into sunbreak (good) / hail (hard) — the dial does
+     the appraisal and sends the resolved kind; we just render whatever `kind` arrives. */
   var CAST = {
     weather:{
-      sun:  {name:'bright, open sky', pass:'Even sunshine is in motion; clouds drift across and back.'},
-      rain: {name:'steady rain',      pass:'Rain is heavy to stand in, and it passes — and it waters things.'},
-      cold: {name:'a cold front',     pass:'A cold gust moves through fast; it’s loud, but already leaving.'},
-      storm:{name:'a thunderhead',    pass:'Storms burn hot, then blow over.'},
-      fog:  {name:'drifting fog',     pass:'Fog clouds the view, then lifts.'},
-      flash:{name:'a sudden flash',   pass:'The briefest weather — a flash, then gone, handing you to whatever’s next.'}
-    },
-    climate:{
-      seeking:{name:'the growth-drive', steady:'Not a weather — the engine underneath. Always on: every plant leaning toward the light.'},
-      care:   {name:'a warm front between the beds', steady:'The warmth that builds a bond — the same warmth that aches when it’s lost. It stays; it doesn’t roll through.'}
+      storm:{name:'a thunderhead',          pass:'Storms burn hot, then blow over.'},
+      fog:  {name:'fog',                     pass:'Fog clouds the view, then lifts — and the shapes in it were never as real as they looked.'},
+      rain: {name:'steady rain',             pass:'Rain is heavy to stand in, and it passes — and it waters things.'},
+      sun:  {name:'bright, open sky',        pass:'Even sunshine is in motion; clouds drift across and back.'},
+      haze: {name:'a thick, yellow haze',    pass:'The air turns foul and humid, then clears — you can step out and breathe.'},
+      flash:{name:'a sudden break in the sky',pass:'The briefest weather — a beat, neutral, then it tips one way or the other.'},
+      sunbreak:{name:'sun through the clouds',pass:'A good surprise — the cloud opens and the light comes through.'},
+      hail: {name:'a sudden hail',           pass:'Sharp, out of nowhere — it stings, then it’s gone.'}
     },
     /* TODO: confirm sensation→place map — brief §6 is NEEDS LISA. Names are the §6 starter;
        x/y are placeholder positions over the scene (0–100%), not Lisa's confirmed geography. */
@@ -1563,55 +1580,59 @@
     return 'rgba('+((n>>16)&255)+','+((n>>8)&255)+','+(n&255)+',.55)';
   }
 
+  function clamp01(v){ return v<0?0:v>1?1:v; }
+
   function cast(d){
     if(!d) return;
+    /* Seeking/Care retired — the wheel is six weathers now (MODEL §2/§5). Ignore stale climate picks. */
+    if(d.mode==='climate'){ return; }
     var st=stage(); if(!st) return;
     var ov=overlay(); if(!ov) return;
     if(flashTimer){ clearTimeout(flashTimer); flashTimer=null; }
     if(d.color) st.style.setProperty('--cast-hue', d.color);
 
-    var body='<div class="wash"></div>';
-    var where=placeNames(d.regions);
-    var note;
+    /* intensity = how MUCH weather (MODEL §2). Dial may send d.intensity (0–1) later; default mid. */
+    var inten = (typeof d.intensity==='number') ? clamp01(d.intensity) : 0.5;
+    ov.style.setProperty('--i', inten);
 
-    if(d.mode==='climate'){
-      var c=CAST.climate[d.key]||{name:d.label||'a steady condition', steady:''};
-      body+='<div class="w-'+(d.key==='care'?'care':'seeking')+'"></div>'+placeGlows(d.regions, d.color);
-      note='<span class="w-name">'+esc(c.name)+'</span>'+
-           (where?'<span class="w-where">where it lands — '+esc(where)+'</span>':'')+
-           '<span class="w-pass">'+esc(c.steady)+'</span>';
-    } else {
-      var kind=d.kind||'sun';
-      var w=CAST.weather[kind]||{name:d.label||'weather', pass:'It passes.'};
-      body+=kindVisual(kind)+placeGlows(d.regions, d.color);
-      note='<span class="w-name">'+esc(w.name)+'</span>'+
-           (where?'<span class="w-where">where it lands — '+esc(where)+'</span>':'')+
-           '<span class="w-pass">'+esc(w.pass)+'</span>'+
-           '<button type="button" class="w-move">let it move on</button>';
-      if(kind==='flash'){ flashTimer=setTimeout(function(){ clearCast(); }, reduced()?1600:2600); }
-    }
+    var kind=d.kind||'sun';
+    var w=CAST.weather[kind]||{name:d.label||'weather', pass:'It passes.'};
+    var where=placeNames(d.regions);
+
+    var body='<div class="wash"></div>'+kindVisual(kind, inten)+placeGlows(d.regions, d.color);
+    /* flash is the brief neutral break — it passes on its own (no "move on" button, no fork UI here:
+       the dial owns the good/bad appraisal and re-sends kind sunbreak|hail). Everything else offers
+       "let it move on" to embody "it passes". */
+    var control = (kind==='flash') ? '' : '<button type="button" class="w-move">let it move on</button>';
+    var note='<span class="w-name">'+esc(w.name)+'</span>'+
+             (where?'<span class="w-where">where it lands — '+esc(where)+'</span>':'')+
+             '<span class="w-pass">'+esc(w.pass)+'</span>'+control;
 
     ov.innerHTML=body+'<div class="cast-note" role="status" aria-live="polite">'+note+'</div>';
     // force reflow so the .on transition runs even on a re-cast
     void ov.offsetWidth;
     ov.classList.add('on');
     var mv=ov.querySelector('.w-move'); if(mv) mv.addEventListener('click', function(){ clearCast(); });
+    /* the briefest weather passes by itself — cleared regardless of motion pref so it never sits stuck */
+    if(kind==='flash'){ flashTimer=setTimeout(function(){ clearCast(); }, reduced()?1400:2400); }
 
-    try{ localStorage.setItem('garden.cast', JSON.stringify({key:d.key,label:d.label,mode:d.mode,kind:d.kind,regions:d.regions,color:d.color})); }catch(e){}
+    try{ localStorage.setItem('garden.cast', JSON.stringify({key:d.key,label:d.label,mode:d.mode,kind:d.kind,regions:d.regions,color:d.color,intensity:inten})); }catch(e){}
   }
 
-  function kindVisual(kind){
-    if(kind==='sun')  return '<div class="w-sun"></div>';
-    if(kind==='rain') return '<div class="w-rain">'+streaks(28,2,96)+'</div>';
-    if(kind==='cold') return '<div class="w-cold"><div class="chill"></div>'+streaks(10,8,84)+'</div>';
-    if(kind==='fog')  return '<div class="w-fog"></div>';
-    if(kind==='storm')return '<div class="w-storm"></div>';
-    if(kind==='flash')return '<div class="w-flash"></div>';
+  function kindVisual(kind, inten){
+    if(kind==='sun')      return '<div class="w-sun"><div class="rainbow"></div></div>';
+    if(kind==='sunbreak') return '<div class="w-sunbreak"></div>';
+    if(kind==='rain')     return '<div class="w-rain">'+streaks(40,1,98)+'</div>';
+    if(kind==='fog')      return '<div class="w-fog"></div>';
+    if(kind==='haze')     return '<div class="w-haze"></div>';
+    if(kind==='storm')    return '<div class="w-storm">'+((inten||0)>0.6?'<div class="bolt"></div>':'')+'</div>';
+    if(kind==='flash')    return '<div class="w-flash"></div>';
+    if(kind==='hail')     return '<div class="w-hail">'+streaks(26,2,96)+'</div>';
     return '';
   }
   function streaks(n, x0, span){
     var s='';
-    for(var i=0;i<n;i++){ s+='<span class="streak" style="left:'+(x0+i*(span/n)).toFixed(1)+'%; animation-delay:'+(i*0.18).toFixed(2)+'s"></span>'; }
+    for(var i=0;i<n;i++){ s+='<span class="streak" style="left:'+(x0+i*(span/n)).toFixed(1)+'%; animation-delay:'+((i%9)*0.16).toFixed(2)+'s"></span>'; }
     return s;
   }
   function esc(s){ return String(s==null?'':s).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];}); }
@@ -1627,7 +1648,7 @@
   /* silent resume of the last cast (house rule: localStorage = quiet resume only) */
   try{
     var saved=localStorage.getItem('garden.cast');
-    if(saved){ var d=JSON.parse(saved); if(d && (d.mode==='climate' || d.kind)) setTimeout(function(){ cast(d); }, 400); }
+    if(saved){ var d=JSON.parse(saved); if(d && d.kind && d.mode!=='climate') setTimeout(function(){ cast(d); }, 400); }
   }catch(e){}
 })();
 </script>

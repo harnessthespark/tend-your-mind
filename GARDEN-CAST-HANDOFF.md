@@ -113,3 +113,20 @@ The dial now dispatches these `kind`s: `storm`(anger) · `fog`(**fear**, was col
 9. **(Blocked on Lisa)** wire the real **sensation→place map** (§6) into the `CAST` config when she supplies the geography.
 
 **Do NOT undo:** option A (the screen-6 sundial iframe + postMessage bridge), the `garden.weather` save on cast, or the rain contrast fix.
+
+---
+
+## Cast lane — 2026-06-16 update DONE (garden.html session)
+Worked through actions 1–7; 8–9 stay deferred (blocked on Lisa). Verified in a real browser over http, all 6 weathers at intensity endpoints `--i:0` and `--i:1`, no console errors. Preserved option A, the `garden.weather` save, and the rain contrast fix.
+
+- **1 · `haze` (disgust) added** — thick yellow/humid radial, `mix-blend-mode:multiply`, opacity = thickness. Distinct from fear's grey fog. ✅
+- **2 · rain "fireworks" fixed** — the stutter was `translateY(118%)` (relative to the drop's own box, ~66px of travel then snap). Now fixed pixel-distance fall (`translateY(460px)`), shorter (18px) · more (40) · lower-opacity drops. Continuous. Kept your greyed-sky + pale-streak contrast fix. ✅
+- **3 · visibility sweep** — endpoints retuned for all of `fog · storm · sun · haze · flash` to read over `calm-garden.png`. ✅
+- **4 · `fog` tuned for fear** — grey `#d6dad7`, blurred, `opacity = .12 + .78·i` (thin mist → can't-see). ✅
+- **5 · surprise fork — renderers only** (per advisor): `flash` = brief neutral break, **auto-passes** (no "move on", clears regardless of motion pref so it never sits stuck); plus `sunbreak` (good) and `hail` (hard) renderers keyed by `d.kind`. **I did NOT build a good/bad decision UI in the garden** — MODEL §4/§52 put the appraisal on the dial. ⚠️ **DECISION NEEDED:** who drives the fork — does the dial do the appraisal and send `kind:'sunbreak'|'hail'`, or should the garden present it? I assumed the former. If the dial won't, tell me and I'll add an interim affordance.
+- **6 · intensity scaling** — every weather scales mild→intense by opacity/density via `--i` on `.weather-cast`. `cast()` reads `d.intensity` (0–1), **defaults 0.5** until the dial sends it. Sun grows a rainbow only past `i>.62`; storm adds a slow non-strobe bolt only past `i>.6`. Technique mirrors `intensity-demo.html`. ✅
+- **7 · climate retired** — `w-seeking`/`w-care` CSS + `CAST.climate` removed; `cast()` ignores stray `mode:'climate'` picks; `cold` kind removed. Six weathers only. ✅
+- **8 · gardener fade** — deferred until Lisa's first-person redraw lands (coordinate then).
+- **9 · sensation→place map** — still NEEDS LISA; place-glows remain placeholder in the `CAST.place` config.
+
+Contract now: `kind ∈ storm|fog|rain|sun|haze|flash` (+ `sunbreak|hail` if the dial resolves surprise); optional `intensity` 0–1; `mode` effectively always `weather`.
