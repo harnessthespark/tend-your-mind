@@ -18,7 +18,8 @@ _Last updated 2026-06-15._
 ## 🎨 Gardener = ambiguous avatar + hands for actions
 **Keep the gardener (it's key), make it unreadable; use first-person hands for the action scenes.**
 - [ ] **Ambiguate the gardener** in the wide garden scenes (`hero-garden.png` · `calm-garden.png` · `anxiety-garden.png`): **brim low → face in shadow**, **long gloves + rolled sleeves + boots** (little skin shows — the race-neutral lever), loose dungarees, hair tucked, neutral build. Ambiguity = *unreadable*, not a "neutral default".
-- [ ] **First-person hands** for the *action* scenes (plant / pull a weed / fill+tip the bucket / turn the dial) — the same figure's hands, ideally a recolourable skin layer.
+- [ ] **First-person hands** for the *action* scenes (plant / pull a weed / fill+tip the bucket / turn the dial) — the same figure's hands. **Skin = a recolour layer** (`class="skin"` / `fill:var(--skin)`), everything else fixed.
+- [ ] **Skin-tone picker** — a quiet "make the hands yours" swatch row (~6 inclusive tones) that sets `--skin` on the close-ups + persists in `localStorage` (UI pref). *I can build this plumbing now with a placeholder hand, ready for Lisa's art.*
 - [ ] "Gardener gets locked out" keeps the **(ambiguous) figure** — fade/step-back still works (coordinate the cast-lane `#gardner` fade once redrawn).
 
 ## 🟢 Seeking & Care homes (off the wheel)

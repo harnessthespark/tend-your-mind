@@ -146,6 +146,7 @@ So the **Potting Shed gains a second role beside memory: the vantage point.** Po
 - **The gardener stays (it's the key character — your PFC-self), made deliberately identity-ambiguous.** Levers: **brim low so the face sits in shadow** (tending posture, minimal/non-specific features), **long gloves + rolled sleeves + boots** so almost no skin shows (the race-neutral lever — works by showing little, not by picking a "neutral" tone), loose dungarees, hair tucked, neutral build. **Ambiguity = *unreadable*, not a "neutral default"** (a generic figure still defaults to white/male in the reading; hiding the markers is what makes it inclusive — everyone projects themselves in).
   - **Two distances, one person:** wide scene = the ambiguous gardener (your avatar); **close-up tending = that same figure's hands** (reads first-person *because* the avatar is deliberately you-shaped). The hands idea survives — as the avatar's hands.
   - Keeps the warmth + the "gardener gets locked out" beat (there's still a figure to be locked out). `inside-shed.png` remains the first-person vantage.
+  - **The close-up hands carry a *user-settable skin tone*.** The wide gardener = *anyone* (universal by hiding markers); the close hands = *you* (personal by setting them) — complementary inclusivity. Draw hands with **skin as a recolour layer** (`fill:var(--skin)`); a swatch picker (~6 tones) sets it + persists in `localStorage` (UI pref).
 
 **Still genuinely open:**
 - SIGNATURE cells to verify with a clinician: joy = warm/light; lump-in-throat / breathless additions (§6).
