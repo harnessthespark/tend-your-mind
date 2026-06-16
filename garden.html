@@ -376,8 +376,11 @@
     animation:cast-breathe 6.5s ease-in-out infinite}
   /* rain / cold — thin soft streaks, low opacity, unhurried */
   .weather-cast .streak{position:absolute; top:-14%; width:2px; height:46px; border-radius:2px; opacity:.5}
-  .weather-cast .w-rain .streak{background:linear-gradient(rgba(70,140,200,0),rgba(70,140,200,.6));
-    animation:cast-fall 3.4s linear infinite}
+  .weather-cast .w-rain{position:absolute; inset:0;
+    background:linear-gradient(rgba(92,102,118,.46), rgba(92,102,118,.12) 52%, transparent 78%)}
+  .weather-cast .w-rain .streak{width:2px; height:56px;
+    background:linear-gradient(rgba(238,244,250,0),rgba(238,244,250,.92)); opacity:.72;
+    animation:cast-fall 2.6s linear infinite}
   .weather-cast .w-cold .streak{background:linear-gradient(rgba(150,180,210,0),rgba(150,180,210,.55));
     transform:rotate(16deg); animation:cast-fall 2.8s linear infinite}
   .weather-cast .w-cold .chill{position:absolute; inset:0; background:rgba(180,205,225,.20);
@@ -1599,7 +1602,7 @@
 
   function kindVisual(kind){
     if(kind==='sun')  return '<div class="w-sun"></div>';
-    if(kind==='rain') return '<div class="w-rain">'+streaks(14,3,90)+'</div>';
+    if(kind==='rain') return '<div class="w-rain">'+streaks(28,2,96)+'</div>';
     if(kind==='cold') return '<div class="w-cold"><div class="chill"></div>'+streaks(10,8,84)+'</div>';
     if(kind==='fog')  return '<div class="w-fog"></div>';
     if(kind==='storm')return '<div class="w-storm"></div>';
