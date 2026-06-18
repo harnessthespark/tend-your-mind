@@ -130,3 +130,37 @@ Worked through actions 1–7; 8–9 stay deferred (blocked on Lisa). Verified in
 - **9 · sensation→place map** — still NEEDS LISA; place-glows remain placeholder in the `CAST.place` config.
 
 Contract now: `kind ∈ storm|fog|rain|sun|haze|flash` (+ `sunbreak|hail` if the dial resolves surprise); optional `intensity` 0–1; `mode` effectively always `weather`.
+
+---
+
+## 2026-06-18 update — for the cast/garden lane
+
+`MODEL.md` is the source of truth (esp. **§7 Perspective**, **§8 decisions**). Big changes since last time:
+
+### Scenes reworked + aligned (matters for your cast)
+- The two-state scene is now **`calmstate.png` + `negativestate.png`** — NOT `calm-garden`/`anxiety-garden` (removed). Both **1801×900, fully opaque, pixel-aligned** (built on ONE 1800×900 artboard, layers toggled — fixes the old size-mismatch + white-border + see-through bugs). `garden-scene.svg` references them; `#stormscene` = negativestate. **Alarm trip cross-fades cleanly now.**
+- **Scene hotspots re-aligned** to the new art: `data-wall` (boundary close-up) + `data-go="6"` (sundial → today's weather).
+- ⚠️ **Mobile crash FIXED — keep exports ≤ ~1800px.** Images were 8514–17067px (36–160 MP → ~145 MB+ decode RAM each → mobile Safari rendered blank). All resized. *Pixel dimensions matter as much as file size on mobile.*
+
+### Surprise fork — your DECISION NEEDED is ANSWERED
+The **dial owns the appraisal**: surprise asks good/bad and re-dispatches `kind:'sunbreak'|'hail'`. Your renderers land it. **Drop the interim garden-side affordance plan.**
+
+### NEW big direction: two ways to experience weather (perspective)
+The weather now has **two modes, tied to where you stand**:
+- **Outside, in the garden** → falling rain *on the scene* (iOS-Weather feel: layered depth near+far, slow drifting clouds, cool desaturated sky). You're *in* it.
+- **Inside the shed, at the window** (`inside-shed.png`) → **rain on the glass** — rivulets down the panes, garden blurred behind, clouds drifting beyond. You're *watching* it. This is the **"step into the shed = take perspective"** regulation move.
+- **Rules:** positive weather (sun/joy) is experienced **outside** (you don't shelter from joy). Hard weather is a **choice** (tend through, or step into the shed when overwhelmed). **NOT** all-in-the-shed (that's dissociation; the shed is to move between, not live in).
+- **Moving clouds** wanted in both — slow drifting layer is the "alive" feel.
+- **Prototype:** `rain-shed.html` — Canvas rain-on-glass (condensation + running drops + drifting clouds) over the shed windows, calm + reduced-motion-aware. Starting point for the real build.
+
+### Other
+- **Gardener = ambiguous avatar** (kept; identity-unreadable: low brim, long gloves, neutral) for wide scenes. **First-person hands** for action scenes, with a **user-settable skin tone** (`hands-picker.html` — CSS filter on the hands PNG + localStorage).
+- **Sundial walk is complete**: notice → narrow → pick → read → tell-apart → express (+ surprise fork). Now loads Caveat + Atkinson (was falling back to serif).
+
+### Open for the cast/garden lane
+1. **Rain-on-glass shed view** for real (from `rain-shed.html`) + the **outside falling-rain** (iOS-style, layered) for the in-garden cast.
+2. **Moving clouds** layer in the cast (drifting, slow).
+3. **Intensity handshake** still open: dial → send `detail.intensity` (your cast already reads it; defaults 0.5).
+4. Build the **action screens** (blooms/weeds/bucket) with first-person hands + the skin-tone picker.
+
+**Do NOT undo:** the new scenes/hotspots, the sundial font load, the completed walk, option A.
