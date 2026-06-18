@@ -124,9 +124,15 @@ The spine made into a **place you can move to.**
 - **Exposed in the garden** = *fused* with the feeling — the storm happens *to* you, no distance, gardener locked out.
 - **In the potting shed, watching through the windows** = the **observer self** — same storm, but seen, named, known to pass. *"You are the gardener and the sky, not the storm."*
 
-This is the **cerebellum's distancing / reappraisal** made concrete, and the regulation move the garden implies (*you can't prune with the alarm blaring — but you can shelter and watch it blow over*). **`inside-shed.png` already depicts this vantage** (interior, windows onto the garden) — it was drawn for exactly this.
+This is the **cerebellum's distancing / reappraisal** made concrete, and the regulation move the garden implies (*you can't prune with the alarm blaring — but you can shelter and watch it blow over*). **`inside-shed.png` already depicts this vantage** (interior, two windows onto the garden) — it was drawn for exactly this.
 
-So the **Potting Shed gains a second role beside memory: the vantage point.** Possible build move: **"step into the shed" = take perspective** — shifts you from *in it* → *watching it from shelter*, especially at high weather-intensity.
+So the **Potting Shed gains a second role beside memory: the vantage point.** Build move: **"step into the shed" = take perspective** — shifts you from *in it* → *watching it from shelter*, especially at high weather-intensity.
+
+**The visual that makes it physical — weather *on the glass*:**
+- **Out in the garden** → the weather is *on you* (cast over the scene).
+- **Inside the shed, at the window** (`inside-shed.png`) → the weather is *on the glass* — rivulets of **rain** running down the panes (garden blurred behind), **fog** misting the glass (wipe to see out), **sun** pooling warm through the window, **storm** flickering muffled beyond it.
+
+Stepping inside literally moves the weather from *on you* → *out there, behind glass.* The distance you gain becomes something you can **see**. The observer-self / defusion, rendered as a pane of glass.
 
 **Nuance (keep it healthy):** the shed is to **move between**, not hide in. Stepping in when flooded = regulation; living there = avoidance/dissociation. The skill is the *movement* (cerebellum: knowing *when*).
 
