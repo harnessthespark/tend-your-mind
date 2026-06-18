@@ -4,8 +4,8 @@
        calm-garden.png   = blue sky, gardener tending, quiet alarm, brick wall + gate.
        anxiety-garden.png = grey sky, gardener locked out, alarm sounding.
        applyScene() toggles svg.storm → CSS cross-fades calm → anxiety. -->
-  <image x="0" y="0" width="2080" height="1037" xlink:href="assets/calm-garden.png"/>
-  <image id="stormscene" x="0" y="0" width="2080" height="1037" xlink:href="assets/anxiety-garden.png"/>
+  <image x="0" y="0" width="2080" height="1037" xlink:href="assets/calmstate.png"/>
+  <image id="stormscene" x="0" y="0" width="2080" height="1037" xlink:href="assets/negativestate.png"/>
 
   <!-- tap-targets. The WALL hotspot is FIRST (lowest priority) so the object hotspots
        below win wherever they overlap it. -->
